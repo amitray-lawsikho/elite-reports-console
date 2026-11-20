@@ -193,25 +193,8 @@
         <label class="label" for="PUSH_TIMEOUT_SECONDS">Push timeout (seconds)</label>
         <input class="input" id="PUSH_TIMEOUT_SECONDS" type="number" min="30" max="1800" />
       </div>
-      <div class="field">
-        <label class="label" for="PORT">Port</label>
-        <input class="input" id="PORT" type="number" min="1024" max="65535" />
-        <div class="hint">Takes effect next start. 5200 keeps clear of Leads Console on 5100.</div>
-      </div>
     </div>
 
-    <h3 style="font-size:13px;margin:18px 0 12px">Optional password</h3>
-    <div class="grid grid-2">
-      <div class="field">
-        <label class="label" for="APP_USER">Username</label>
-        <input class="input" id="APP_USER" autocomplete="off" />
-      </div>
-      <div class="field">
-        <label class="label" for="APP_PASS">Password</label>
-        <input class="input" id="APP_PASS" data-secret="1" type="password" autocomplete="new-password" />
-        <div class="hint">Set both to lock the console; leave either blank to keep it open.</div>
-      </div>
-    </div>
 
     <div class="row" style="margin-top:14px">
       <button class="btn btn-primary" id="saveBtn" onclick="saveSettings()">Save settings</button>
