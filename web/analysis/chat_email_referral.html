@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chat, Email & Referral dashboard — Elite Reports Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="/static/css/erc.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="/static/js/erc.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#9636;</text></svg>" />
+</head>
+<body data-page="analysis">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-name">Elite Reports Console</div>
+        <div class="brand-sub">Fetch &middot; Build &middot; Push &middot; Analyse</div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-label">Reports</div>
+        <a class="nav-item " href="/">
+          <span class="nav-icon">&#9783;</span> Reports
+        </a>
+
+        <div class="nav-label">Analysis</div>
+        
+        <a class="nav-item active"
+           href="/analysis/chat_email_referral">
+          <span class="nav-icon">&#9636;</span> Chat, Email & Referral
+        </a>
+        
+        <a class="nav-item "
+           href="/analysis/incoming">
+          <span class="nav-icon">&#9636;</span> Incoming Leads
+        </a>
+        
+        <a class="nav-item "
+           href="/analysis/high_priority">
+          <span class="nav-icon">&#9636;</span> High Priority Leads
+        </a>
+        
+
+        <div class="nav-label">Configuration</div>
+        <a class="nav-item " href="/setup">
+          <span class="nav-icon">&#9873;</span> Setup and links
+        </a>
+        <a class="nav-item " href="/settings">
+          <span class="nav-icon">&#9881;</span> Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="signature">
+          Developed and Designed by Amit Ray<br />
+          <a href="mailto:amitray@lawsikho.in">amitray@lawsikho.in</a>
+        </div>
+        <div id="credBadges" class="chip-list"></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 class="page-title">Chat, Email & Referral</h1>
+          <p class="page-sub"></p>
+        </div>
+        <div class="topbar-actions">
+          
+<a class="btn btn-sm" href="/">Build reports</a>
+
+          <button class="btn btn-sm" type="button" id="themeToggle" onclick="toggleTheme()">Light</button>
+        </div>
+      </header>
+
+      <div class="content">
+        
+        
+
+<div class="card hidden" id="notBuilt">
+  <div class="card-body">
+    <div class="empty-state">
+      <h3>This report has not been built yet</h3>
+      <p class="hint">The dashboard is drawn from the report itself, so there is nothing to show
+        until it has been built from a LeadSquared fetch.</p>
+      <a class="btn btn-primary" href="/">Go and build it &rarr;</a>
+    </div>
+  </div>
+</div>
+
+<div id="dash" class="hidden">
+
+  <!-- ============================================ FILTERS -->
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2 class="card-title">Filters</h2>
+        <p class="card-sub" id="builtSub"></p>
+      </div>
+      <div class="row">
+        <button class="btn btn-sm" onclick="downloadSelection()" title="Every lead in this selection with its breach reason, plus the Data view tables">Download Excel</button>
+        <button class="btn btn-sm" onclick="clearFilters()">Clear</button>
+        <button class="btn btn-sm btn-primary" onclick="run()">Apply</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="pickers" id="slicers"></div>
+      <div class="hint" style="margin-top:12px" id="ruleHint"></div>
+    </div>
+  </div>
+
+  <!-- ============================================ CARDS -->
+  <div class="stats hero" id="cards"></div>
+
+  <!-- ============================================ PANELS -->
+  <div class="card">
+    <div class="card-head">
+      <div><h2 class="card-title">Panels</h2>
+        <p class="card-sub">Click any bar to list that caller's leads underneath.</p></div>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="showTables" onchange="renderAll()" /> Data view</label>
+        <button class="btn btn-sm" onclick="downloadSelection()">Download data view + leads</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="viz-grid">
+        <div class="viz" id="panelFresh"></div>
+        <div class="viz" id="panelDnp"></div>
+        <div class="viz" id="panelBreached"></div>
+        <div class="viz" id="panelGiven"></div>
+        <div class="viz" id="panelEnrol"></div>
+      </div>
+
+      <div class="hidden" id="tables">
+        <div class="tabs" id="tableTabs"></div>
+        <div class="table-wrap"><div class="table-scroll" style="max-height:420px">
+          <div id="matrix"></div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ LEADS -->
+  <div class="card">
+    <div class="card-head">
+      <div><h2 class="card-title">Leads</h2>
+        <p class="card-sub" id="leadsSub">Breached leads in this selection.</p></div>
+      <span class="badge" id="leadCount"></span>
+    </div>
+    <div class="card-body">
+      <div class="table-tools">
+        <select class="input" id="leadPanel" onchange="loadLeads()" style="max-width:220px">
+          <option value="breached">Breached leads</option>
+          <option value="dnp">Breached DNP leads</option>
+          <option value="fresh">Fresh leads</option>
+          <option value="enrolled">Actual enrollments</option>
+          <option value="all">Everything</option>
+        </select>
+        <input class="input" id="leadSearch" placeholder="Search name, phone, stage, Zip Intent…"
+               oninput="debouncedLeads()" />
+        <span class="spacer"></span>
+        <span class="hint" id="pickedOwner" style="margin:0"></span>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll" style="max-height:460px">
+          <table class="data">
+            <thead><tr>
+              <th>Caller</th><th>Lead</th><th>Phone</th><th>Stage</th><th>Follow-up</th>
+              <th>Last called</th><th>Next follow-up</th><th class="num">Calls</th><th>Why</th><th>Zip Intent</th><th>Justification</th>
+            </tr></thead>
+            <tbody id="leadBody"></tbody>
+          </table>
+        </div>
+        <div class="table-foot" id="leadFoot"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+      </div>
+    </main>
+  </div>
+
+  <div class="toasts"></div>
+
+  <script src="/static/js/common.js"></script>
+  <script>
+    /* Hold a connection open for as long as this tab is, so a console running
+       with no window knows somebody is still there. */
+    (function holdKeepalive() {
+      let source = null;
+      function connect() {
+        try {
+          source = new EventSource("/keepalive");
+          source.onerror = function () {
+            if (source) { source.close(); source = null; }
+            setTimeout(connect, 4000);
+          };
+        } catch (err) { /* SSE unavailable — the console simply stays running */ }
+      }
+      connect();
+      window.addEventListener("pagehide", function () {
+        if (source) { source.close(); source = null; }
+      });
+    })();
+
+    /* Readiness chips in the sidebar — a fast way to see that a link or a key
+       is missing before a build fails halfway through. */
+    (async function showCredentials() {
+      const labels = {
+        lsq: "LeadSquared", roster: "Roster", cer: "Chat/Email/Ref",
+        incoming: "Incoming", ozonetel: "Ozonetel", high: "High Priority",
+        mcube: "MCube", acefone: "Acefone",
+      };
+      try {
+        const res = await apiGet("/api/health");
+        const host = document.getElementById("credBadges");
+        host.innerHTML = Object.entries(labels).map(([key, label]) => {
+          const set = res.credentials[key];
+          return `<span class="chip ${set ? "" : "bad"}" title="${set ? "Configured" : "Not configured — open Settings"}">${esc(label)}</span>`;
+        }).join("");
+      } catch (err) { /* the page still works without the badges */ }
+    })();
+  </script>
+  
+<script src="/static/js/charts.js"></script>
+<script>
+const KEY = "chat_email_referral";
+const TITLE = "Chat, Email \u0026 Referral";
+let TOKEN = null;
+let OPTIONS = null;
+let RESULT = null;
+let FILTERS = {};
+let ACTIVE_TABLE = "breached";
+let PICKED_OWNER = "";
+
+/* ------------------------------------------------------------ SLICERS
+   The slicers cascade, as in Leads Console: each one lists only what the
+   others leave — tick a Team and Owner shows that team's people. A slicer
+   never narrows itself, and a tick the others have ruled out stays (at 0)
+   so it can be taken off. */
+function renderSlicers() {
+  const host = document.getElementById("slicers");
+  // Keep each list's scroll position across a redraw.
+  const scroll = {};
+  host.querySelectorAll(".picker-list").forEach((el) => { scroll[el.dataset.key] = el.scrollTop; });
+  host.innerHTML = OPTIONS.slicers.map((s) => {
+    const picked = FILTERS[s.key] || [];
+    const shown = s.values.length < s.total ? ` · ${s.values.length} of ${s.total}` : "";
+    return `
+    <div class="picker">
+      <div class="picker-head">
+        <span class="picker-title">${esc(s.label)}${shown}</span>
+        <button class="link-btn" onclick="toggleAll('${esc(s.key)}')">All / none</button>
+      </div>
+      <div class="picker-list" data-key="${esc(s.key)}">
+        ${s.values.map((v) => {
+          const n = (s.counts || {})[v] || 0;
+          return `
+          <label class="check ${n ? "" : "muted"}">
+            <input type="checkbox" value="${esc(v)}" data-key="${esc(s.key)}"
+                   onchange="slicerChanged()" ${picked.includes(v) ? "checked" : ""} />
+            <span>${esc(v)}</span><span class="picker-count">${num(n)}</span>
+          </label>`;
+        }).join("")}
+      </div>
+    </div>`;
+  }).join("");
+  host.querySelectorAll(".picker-list").forEach((el) => { el.scrollTop = scroll[el.dataset.key] || 0; });
+}
+
+function toggleAll(key) {
+  const boxes = [...document.querySelectorAll(`input[data-key="${key}"]`)];
+  const allOn = boxes.every((b) => b.checked);
+  boxes.forEach((b) => { b.checked = !allOn; });
+  slicerChanged();
+}
+
+function readFilters() {
+  const out = {};
+  OPTIONS.slicers.forEach((s) => {
+    const picked = [...document.querySelectorAll(`input[data-key="${s.key}"]:checked`)]
+      .map((b) => b.value);
+    if (picked.length) out[s.key] = picked;
+  });
+  return out;
+}
+
+let slicerTimer = null;
+function slicerChanged() {
+  clearTimeout(slicerTimer);
+  slicerTimer = setTimeout(async () => {
+    FILTERS = readFilters();
+    await refreshOptions();
+    run();
+  }, 200);
+}
+
+async function refreshOptions() {
+  try {
+    const res = await apiJson(`/api/analysis/${KEY}/options`, { token: TOKEN, filters: FILTERS });
+    OPTIONS.slicers = res.slicers;
+    renderSlicers();
+  } catch (err) { toast(err.message, "error"); }
+}
+
+async function clearFilters() {
+  FILTERS = {};
+  PICKED_OWNER = "";
+  await refreshOptions();
+  run();
+}
+
+/* ------------------------------------------------------------- RUN */
+async function run() {
+  FILTERS = readFilters();
+  try {
+    RESULT = await apiJson(`/api/analysis/${KEY}`, { token: TOKEN, filters: FILTERS });
+    renderAll();
+    loadLeads();
+  } catch (err) { toast(err.message, "error"); }
+}
+
+function renderAll() {
+  if (!RESULT) return;
+  setOwnerSlots(RESULT.owner_slots);
+  const c = RESULT.cards;
+
+  document.getElementById("cards").innerHTML = [
+    ["Total leads", num(c.total), ""],
+    ["Enrolled", num(c.enrolled), "good"],
+    ["Conversion", c.conversion + "%", "accent"],
+    ["Breached", num(c.breached), c.breached ? "warn" : ""],
+    ["Breached DNP", num(c.dnp), ""],
+    ["Fresh", num(c.fresh), ""],
+    ["Callers", num(c.owners), ""],
+  ].map(([label, value, tone]) =>
+    `<div class="stat ${tone}"><div class="stat-value">${esc(value)}</div>
+       <div class="stat-label">${esc(label)}</div></div>`).join("");
+
+  const days = RESULT.breach_days;
+  const mix = Object.entries(RESULT.breach_mix)
+    .map(([k, v]) => `${esc(k)}: ${v}`).join(" &middot; ");
+  document.getElementById("ruleHint").innerHTML =
+    `<strong>Breached</strong> — follow-up overdue by the stage's days and not called since, ` +
+    `or no follow-up and no call within them; never called with no follow-up counts too. Days: ` +
+    Object.entries(days).map(([k, v]) => `${esc(k)} ${v}d`).join(", ") +
+    `. <strong>Breached DNP</strong> — Call Not Connected / Call Not Picking Up with ` +
+    `${esc(RESULT.dnp_caption)}. Both are chosen before each build.` +
+    (mix ? `<br />In this selection — ${mix}.` : "");
+
+  renderPanel("panelFresh", RESULT.panels.fresh, pickOwner);
+  renderPanel("panelDnp", RESULT.panels.dnp, pickOwner);
+  renderPanel("panelBreached", RESULT.panels.breached, pickOwner);
+  renderPanel("panelGiven", RESULT.panels.given, pickOwner);
+  renderDonut("panelEnrol", RESULT.enrollments);
+
+  const show = document.getElementById("showTables").checked;
+  document.getElementById("tables").classList.toggle("hidden", !show);
+  if (show) renderTables();
+}
+
+function renderTables() {
+  const tabs = [["fresh", "Fresh leads"], ["dnp", "Breached DNP"],
+                ["breached", "Breached leads"], ["given", "Total distribution"]];
+  document.getElementById("tableTabs").innerHTML = tabs.map(([key, label]) =>
+    `<button class="tab ${ACTIVE_TABLE === key ? "active" : ""}" onclick="pickTable('${key}')">${esc(label)}</button>`
+  ).join("");
+  renderMatrix("matrix", RESULT.tables[ACTIVE_TABLE], OPTIONS.owner_label);
+}
+
+function pickTable(key) { ACTIVE_TABLE = key; renderTables(); }
+
+/* --------------------------------------------------------- DOWNLOAD */
+function downloadSelection() {
+  const filters = encodeURIComponent(JSON.stringify(FILTERS || {}));
+  lcDownload(`/download/analysis/${KEY}?token=${encodeURIComponent(TOKEN)}&filters=${filters}`);
+}
+
+/* ------------------------------------------------------------ LEADS */
+function pickOwner(owner) {
+  PICKED_OWNER = PICKED_OWNER === owner ? "" : owner;
+  document.getElementById("pickedOwner").innerHTML = PICKED_OWNER
+    ? `Showing <strong>${esc(PICKED_OWNER)}</strong> only — click the bar again to clear.`
+    : "";
+  loadLeads();
+}
+
+let leadTimer = null;
+function debouncedLeads() {
+  clearTimeout(leadTimer);
+  leadTimer = setTimeout(loadLeads, 250);
+}
+
+async function loadLeads() {
+  const panel = document.getElementById("leadPanel").value;
+  const search = document.getElementById("leadSearch").value;
+  const filters = Object.assign({}, FILTERS, PICKED_OWNER ? { panel_owner: PICKED_OWNER } : {});
+  try {
+    const res = await apiJson(`/api/analysis/${KEY}/leads`, { token: TOKEN, filters, panel, search });
+    document.getElementById("leadCount").textContent = `${num(res.total)} lead(s)`;
+    renderTable("leadBody", res.rows, [
+      { key: "owner" }, { key: "lead" }, { key: "phone", className: "mono" },
+      { key: "stage" },
+      { key: "follow_up", render: (r) => r.follow_up.startsWith("Breach") || r.follow_up.endsWith("Breached")
+          ? `<span class="pill bad">${esc(r.follow_up)}</span>`
+          : (r.follow_up ? `<span class="pill">${esc(r.follow_up)}</span>` : "") },
+      { key: "last_called", className: "mono" }, { key: "next_follow_up", className: "mono" },
+      { key: "calls", className: "num" },
+      { key: "why", render: (r) => `<span class="clip" title="${esc(r.why)}">${esc(r.why)}</span>` },
+      { key: "zip_intent", render: (r) => r.zip_intent ? `<span class="pill accent">${esc(r.zip_intent)}</span>` : "" },
+      { key: "zip_justification", render: (r) => `<span class="clip" title="${esc(r.zip_justification)}">${esc(r.zip_justification)}</span>` },
+    ], "Nothing in this selection.");
+    document.getElementById("leadFoot").textContent =
+      res.total > res.shown ? `Showing ${num(res.shown)} of ${num(res.total)}.` : `${num(res.total)} row(s).`;
+  } catch (err) { toast(err.message, "error"); }
+}
+
+/* -------------------------------------------------------------- BOOT */
+(async function boot() {
+  try {
+    OPTIONS = await apiGet(`/api/analysis/${KEY}/options`);
+    TOKEN = OPTIONS.token;
+  } catch (err) {
+    document.getElementById("notBuilt").classList.remove("hidden");
+    return;
+  }
+  document.getElementById("dash").classList.remove("hidden");
+
+  // Open on the newest month.
+  if (OPTIONS.months && OPTIONS.months.length) FILTERS.month = [OPTIONS.months[0]];
+  // …and on the default team (Elite unless changed in Settings).
+  const teams = (OPTIONS.slicers.find((sl) => sl.key === "team") || {}).values || [];
+  const want = String(OPTIONS.default_team || "").trim().toLowerCase();
+  const team = teams.find((t) => t.trim().toLowerCase() === want);
+  if (team) FILTERS.team = [team];
+  await refreshOptions();
+
+  try {
+    const summary = await apiGet(`/api/reports/${KEY}/summary`);
+    if (summary.summary) {
+      const s = summary.summary;
+      document.getElementById("builtSub").textContent =
+        `${TITLE} — built ${new Date(s.built_at).toLocaleString()} from a ${s.fetch_days}-day fetch on ${s.fetch_basis}. ${num(s.rows)} rows.`;
+    }
+  } catch (err) { /* the subtitle is optional */ }
+
+  run();
+})();
+</script>
+
+</body>
+</html>

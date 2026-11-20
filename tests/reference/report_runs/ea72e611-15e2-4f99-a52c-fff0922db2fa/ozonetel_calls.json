@@ -1,0 +1,107 @@
+{
+  "from": "2026-11-05",
+  "to": "2026-11-20",
+  "days": [
+    {
+      "day": "2026-11-05",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    },
+    {
+      "day": "2026-11-06",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    },
+    {
+      "day": "2026-11-07",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    },
+    {
+      "day": "2026-11-08",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    },
+    {
+      "day": "2026-11-09",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    },
+    {
+      "day": "2026-11-10",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    },
+    {
+      "day": "2026-11-11",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    },
+    {
+      "day": "2026-11-12",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    },
+    {
+      "day": "2026-11-13",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    },
+    {
+      "day": "2026-11-14",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    },
+    {
+      "day": "2026-11-15",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    },
+    {
+      "day": "2026-11-16",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    },
+    {
+      "day": "2026-11-17",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    },
+    {
+      "day": "2026-11-18",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    },
+    {
+      "day": "2026-11-19",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    },
+    {
+      "day": "2026-11-20",
+      "calls": 15,
+      "sales": 8,
+      "source": "API"
+    }
+  ],
+  "calls": 128,
+  "numbers": 20,
+  "note": "The master sheet's newest call is 11 Oct 2026, but Ozonetel only keeps 15 days \u2014 calls from 11 Oct to 04 Nov cannot be fetched. Upload them into the master sheet by hand if they matter.",
+  "fetched_at": "2026-11-20T14:30:00",
+  "master_last_day": "2026-10-11"
+}

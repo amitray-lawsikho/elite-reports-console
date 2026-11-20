@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reports — Elite Reports Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="/static/css/erc.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="/static/js/erc.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#9636;</text></svg>" />
+</head>
+<body data-page="reports">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-name">Elite Reports Console</div>
+        <div class="brand-sub">Fetch &middot; Build &middot; Push &middot; Analyse</div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-label">Reports</div>
+        <a class="nav-item active" href="/">
+          <span class="nav-icon">&#9783;</span> Reports
+        </a>
+
+        <div class="nav-label">Analysis</div>
+        
+        <a class="nav-item "
+           href="/analysis/chat_email_referral">
+          <span class="nav-icon">&#9636;</span> Chat, Email & Referral
+        </a>
+        
+        <a class="nav-item "
+           href="/analysis/incoming">
+          <span class="nav-icon">&#9636;</span> Incoming Leads
+        </a>
+        
+        <a class="nav-item "
+           href="/analysis/high_priority">
+          <span class="nav-icon">&#9636;</span> High Priority Leads
+        </a>
+        
+
+        <div class="nav-label">Configuration</div>
+        <a class="nav-item " href="/setup">
+          <span class="nav-icon">&#9873;</span> Setup and links
+        </a>
+        <a class="nav-item " href="/settings">
+          <span class="nav-icon">&#9881;</span> Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="signature">
+          Developed and Designed by Amit Ray<br />
+          <a href="mailto:amitray@lawsikho.in">amitray@lawsikho.in</a>
+        </div>
+        <div id="credBadges" class="chip-list"></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 class="page-title">Reports</h1>
+          <p class="page-sub">Fetch, build, update LeadSquared, rebuild — then download or push the reports, and send the leads that need a call to the dialers.</p>
+        </div>
+        <div class="topbar-actions">
+          
+          <button class="btn btn-sm" type="button" id="themeToggle" onclick="toggleTheme()">Light</button>
+        </div>
+      </header>
+
+      <div class="content">
+        
+        
+
+<!-- =============================================== THE FOUR STEPS -->
+<div class="card">
+  <div class="card-head">
+    <div>
+      <h2 class="card-title">Build the reports</h2>
+      <p class="card-sub">Four steps, top to bottom. Each runs as a job; its log is at the bottom of this panel.</p>
+    </div>
+    <span class="badge" id="fetchBadge">Nothing fetched</span>
+  </div>
+  <div class="card-body">
+    <div class="flow">
+
+      <!-- 1. FETCH -->
+      <div class="flow-step" id="step1">
+        <span class="step-badge">1</span>
+        <div>
+          <h3>Fetch</h3>
+          <p class="step-sub">LeadSquared — every lead whose chosen date is in the last <em>N</em> days — then the
+            sales incoming calls from Ozonetel for every day from the Incoming master sheet's newest Call Date
+            up to today.</p>
+          <div class="fetch-row">
+            <div class="field">
+              <label class="label" for="fetchBasis">Fetch on the basis of</label>
+              <select class="input" id="fetchBasis">
+                
+                <option value="assigned" >Assigned On</option>
+                
+                <option value="modified" selected>Modified On</option>
+                
+                <option value="created" >Created On</option>
+                
+                <option value="last_called" >Last Called On</option>
+                
+              </select>
+            </div>
+            <div class="field">
+              <label class="label" for="fetchDays">Days to fetch</label>
+              <input class="input" id="fetchDays" type="number" min="1" max="365" step="1"
+                     value="30" />
+            </div>
+            <button class="btn btn-primary" id="fetchBtn" onclick="startFetch()">Fetch</button>
+            <a class="btn hidden" id="dlSnapshot" href="#">Download snapshot</a>
+          </div>
+          <div id="fetchFacts" class="stats compact hidden" style="margin-top:14px"></div>
+          <div class="hint" id="ozoneHint"></div>
+        </div>
+      </div>
+
+      <!-- 2. BUILD -->
+      <div class="flow-step" id="step2">
+        <span class="step-badge">2</span>
+        <div>
+          <h3>Build the reports</h3>
+          <p class="step-sub">All three from the snapshot — this pass is to find the leads that do not match yet.</p>
+          <div class="row">
+            <button class="btn btn-primary" id="buildBtn" onclick="buildAll()" disabled>Build all three reports</button>
+            <button class="btn btn-sm" onclick="refreshSources()" title="Re-read every linked Google Sheet on the next build">Refresh sources</button>
+          </div>
+          <div class="hint" id="builtLine"></div>
+        </div>
+      </div>
+
+      <!-- 3. UPDATE LSQ -->
+      <div class="flow-step" id="step3">
+        <span class="step-badge">3</span>
+        <div>
+          <h3>Update LeadSquared</h3>
+          <p class="step-sub">Leads no report could match, in one CSV. Import it into LeadSquared against
+            <code>mx_Report_Type</code> — Chat/Email/Referral and Incoming rows match on Phone Number,
+            High Priority rows on Prospect ID.</p>
+          <div class="row">
+            <a class="btn btn-primary disabled" id="dlCombined" href="#">Download the update CSV</a>
+            <span class="badge" id="pendingBadge">Build first</span>
+            <span class="hint" id="pendingSplit" style="margin:0"></span>
+          </div>
+          <details class="disclosure hidden" id="pendingBox" style="margin-top:10px">
+            <summary>What is in the CSV</summary>
+            <div class="table-wrap"><div class="table-scroll" style="max-height:300px">
+              <table class="data">
+                <thead><tr><th>Phone Number</th><th>Prospect ID</th><th>Email</th><th>Report_Type</th></tr></thead>
+                <tbody id="pendingBody"></tbody>
+              </table>
+            </div><div class="table-foot" id="pendingFoot"></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- 4. REBUILD -->
+      <div class="flow-step" id="step4">
+        <span class="step-badge">4</span>
+        <div>
+          <h3>Rebuild</h3>
+          <p class="step-sub">After the import has landed: choose the breached days and the less-dialled DNP rule,
+            then fetch again with the days and basis above (Ozonetel days already fetched are not fetched again),
+            rebuild every report, and see whether the unmatched count went down.</p>
+          <div class="row">
+            <button class="btn btn-primary" id="rebuildBtn" onclick="askRules('rebuild')">Fetch and rebuild everything</button>
+            <span class="hint" id="rulesUsed" style="margin:0"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- one status line and log for every step -->
+    <div class="row" style="margin-top:6px">
+      <div class="status hidden" id="jobStatus" style="flex:1;min-width:260px"></div>
+      <button class="btn btn-sm" type="button" id="stopBtn" disabled>Stop</button>
+    </div>
+    <details class="disclosure" id="logBox" style="margin-top:12px" open>
+      <summary>Log</summary>
+      <div class="log" id="jobLog" style="height:220px"><div class="log-empty">Nothing run in this session yet.</div></div>
+    </details>
+  </div>
+</div>
+
+<!-- =============================================== THE REPORTS -->
+<div class="card" id="reportsCard">
+  <div class="card-head">
+    <div>
+      <h2 class="card-title">The reports</h2>
+      <p class="card-sub">After the rebuild: download, preview, push to the Google Sheets, open the dashboards.</p>
+    </div>
+  </div>
+  <div class="card-body">
+    <div id="reportsEmpty" class="hint" style="margin-top:0">Build the reports first.</div>
+    <div class="report-grid" id="reportCards"></div>
+  </div>
+</div>
+
+<!-- =============================================== DIALERS -->
+<div class="card" id="dialerCard">
+  <div class="card-head">
+    <div>
+      <h2 class="card-title">Dialer files</h2>
+      <p class="card-sub">Pick what needs a call and whose leads. The ticked categories from the ticked reports become
+        one list — each lead once, each with its current owner — as an MCube and an Acefone file.</p>
+    </div>
+    <span class="badge" id="dialerBadge">Build first</span>
+  </div>
+  <div class="card-body">
+    <div class="label">Which leads</div>
+    <div class="cat-grid" id="catGrid"></div>
+
+    <div class="label" style="margin-top:14px">From which reports</div>
+    <div class="row" id="reportPicks"></div>
+
+    <div class="row" style="margin-top:14px;align-items:center">
+      <div class="label" style="margin:0">Whose leads</div>
+      <span class="hint" id="callerSummary" style="margin:0">All callers.</span>
+      <span class="spacer"></span>
+      <button class="btn btn-sm" onclick="loadCallers(true)">Load roster</button>
+    </div>
+    <div class="pickers" id="callerPickers" style="margin-top:8px"></div>
+
+    <div class="row" style="margin-top:14px">
+      <button class="btn btn-primary" id="makeFilesBtn" onclick="makeFiles()" disabled>Make the dialer files</button>
+      <span class="hint" id="dialerHint" style="margin:0"></span>
+    </div>
+
+    <div id="dialerResult" class="hidden" style="margin-top:16px">
+      <div class="stats compact" id="dialerFacts"></div>
+      <div class="hint" id="dialerNotes"></div>
+      <div class="row" style="margin-top:12px;flex-wrap:wrap">
+        <a class="btn btn-sm" id="dlMcube" href="#">MCube file</a>
+        <a class="btn btn-sm" id="dlAcefone" href="#">Acefone file</a>
+        <a class="btn btn-sm" id="dlLeads" href="#">Lead list with reasons</a>
+        <a class="btn btn-sm hidden" id="dlSkipped" href="#">MCube — held back (no agent)</a>
+      </div>
+      <details class="disclosure" style="margin-top:12px">
+        <summary>Leads per owner</summary>
+        <div class="table-wrap"><div class="table-scroll" style="max-height:300px">
+          <table class="data"><thead><tr><th>Owner</th><th class="num">Leads</th><th>MCube agent number</th></tr></thead>
+            <tbody id="ownerBody"></tbody></table>
+        </div></div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================== PUSH PANELS -->
+<div class="grid grid-2">
+  <!-- MCube -->
+  <div class="card" id="mcubeCard">
+    <div class="card-head">
+      <div><h2 class="card-title">MCube</h2>
+        <p class="card-sub">Push the MCube file into an autodialer campaign.</p></div>
+      <button class="btn btn-sm" onclick="loadCampaigns()">Refresh campaigns</button>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <label class="label" for="mcubeCampaign">Autodialer campaign</label>
+        <select class="input" id="mcubeCampaign"><option value="">Loading…</option></select>
+      </div>
+      <div class="source-chip" id="mcubeSource">No file yet — make the dialer files above, or upload one.</div>
+      <div class="field" style="margin-top:10px">
+        <label class="label" for="mcubeFile">Or push a file of your own <span style="text-transform:none;font-weight:400">(MCUBE_Upload.csv — optional)</span></label>
+        <input class="input" type="file" id="mcubeFile" accept=".csv" onchange="uploadFile('mcube')" />
+      </div>
+      <div class="grid grid-3">
+        <div class="field">
+          <label class="label" for="mcubeRetryAttempts">Retry attempts</label>
+          <input class="input" id="mcubeRetryAttempts" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label class="label" for="mcubeRetryTime">Retry time (minutes)</label>
+          <input class="input" id="mcubeRetryTime" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label class="label" for="mcubePriority">Priority override</label>
+          <input class="input" id="mcubePriority" inputmode="numeric" placeholder="1 by default" />
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn btn-primary" id="pushMcubeBtn" onclick="pushDialer('mcube')">Push to campaign</button>
+        <div class="status hidden" id="mcubeStatus" style="flex:1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acefone -->
+  <div class="card" id="acefoneCard">
+    <div class="card-head">
+      <div><h2 class="card-title">Acefone</h2>
+        <p class="card-sub">Push the Acefone file into a broadcast lead list, routed to each owner's skill.</p></div>
+      <button class="btn btn-sm" onclick="loadLists()">Refresh lists</button>
+    </div>
+    <div class="card-body">
+      <div class="grid grid-2">
+        <div class="field">
+          <label class="label" for="acefoneList">Broadcast lead list</label>
+          <select class="input" id="acefoneList"><option value="">Loading…</option></select>
+        </div>
+        <div class="field">
+          <label class="label" for="skillList">Dialer skill list</label>
+          <select class="input" id="skillList" onchange="pickSkillList()"><option value="">Loading…</option></select>
+        </div>
+      </div>
+      <div class="source-chip" id="acefoneSource">No file yet — make the dialer files above, or upload one.</div>
+      <div class="field" style="margin-top:10px">
+        <label class="label" for="acefoneFile">Or push a file of your own <span style="text-transform:none;font-weight:400">(Acefone_Upload.csv — optional)</span></label>
+        <input class="input" type="file" id="acefoneFile" accept=".csv" onchange="uploadFile('acefone')" />
+      </div>
+      <div class="field">
+        <label class="label" for="acefonePriority">Priority override <span style="text-transform:none;font-weight:400">(1–30)</span></label>
+        <input class="input" id="acefonePriority" inputmode="numeric" placeholder="30 by default" />
+      </div>
+      <div class="row">
+        <button class="btn" onclick="openSkillMapping()">Review skill mapping</button>
+        <button class="btn btn-primary" id="pushAcefoneBtn" onclick="pushDialer('acefone')">Push to list</button>
+        <div class="status hidden" id="acefoneStatus" style="flex:1"></div>
+      </div>
+      <div class="hint" id="mappingHint"></div>
+    </div>
+  </div>
+</div>
+
+<!-- dialer activity -->
+<div class="card">
+  <div class="card-head">
+    <div><h2 class="card-title">Dialer activity</h2>
+      <p class="card-sub">The log of the last push.</p></div>
+    <button class="btn btn-sm" type="button" id="dialerStopBtn" disabled>Stop</button>
+  </div>
+  <div class="card-body">
+    <div class="progress"><div class="progress-fill" id="dialerProgress" style="width:0%"></div></div>
+    <div class="hint" id="dialerProgressText" style="margin:6px 0 0"></div>
+    <div class="log" id="dialerLog" style="height:180px;margin-top:10px"><div class="log-empty">Nothing pushed yet.</div></div>
+  </div>
+</div>
+
+<!-- =============================================== PREVIEW -->
+<div class="card hidden" id="previewCard">
+  <div class="card-head">
+    <div>
+      <h2 class="card-title">Preview</h2>
+      <p class="card-sub" id="previewSub"></p>
+    </div>
+    <span class="badge" id="previewBadge"></span>
+  </div>
+  <div class="card-body">
+    <div class="table-wrap">
+      <div class="table-scroll" style="max-height:420px">
+        <table class="data"><thead><tr id="previewHead"></tr></thead><tbody id="previewBody"></tbody></table>
+      </div>
+      <div class="table-foot" id="previewFoot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================== RULES DIALOG -->
+<div class="modal-backdrop hidden" id="rulesModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 class="modal-title" id="rulesTitle">Before rebuilding</h3>
+      <button class="modal-close" type="button" onclick="closeModal('rulesModal')">&times;</button>
+    </div>
+    <div class="modal-body stack">
+      <div>
+        <div class="label">Breached days — per contact stage</div>
+        <div class="rules-grid" id="rulesDays"></div>
+        <div class="hint">Breached when the follow-up is this many days old or more and the lead has not been
+          called since — or, with no follow-up, when the last call is older than this. Never called with no
+          follow-up is always breached. Applies to all three reports.</div>
+      </div>
+      <div>
+        <div class="label">Less-dialled DNP — Call Not Connected / Call Not Picking Up where</div>
+        <div class="dnp-row">
+          <select class="input" id="dnpCounter">
+            <option value="phone">Phone Call Counter</option>
+            <option value="assigned">Assigned On Call Counter</option>
+          </select>
+          <select class="input" id="dnpOp">
+            <option value="lt">is less than</option>
+            <option value="gt">is more than</option>
+            <option value="eq">equals</option>
+          </select>
+          <input class="input" id="dnpValue" placeholder="4" />
+        </div>
+        <div class="hint">"Less than 4" is 0–3. "Equals" takes 3, a range like 2-5, or a list like 2,5,7.
+          A blank counter counts as 0.</div>
+      </div>
+      <div class="hint" style="margin:0">These are remembered for next time.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" type="button" onclick="closeModal('rulesModal')">Cancel</button>
+      <button class="btn btn-primary" type="button" id="rulesGo" onclick="rulesConfirmed()">Fetch and rebuild</button>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================== SKILL MAPPING -->
+<div class="modal-backdrop hidden" id="skillModal">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h3 class="modal-title">Caller → Acefone skill</h3>
+      <button class="modal-close" type="button" onclick="closeModal('skillModal')">&times;</button>
+    </div>
+    <div class="modal-body stack">
+      <div class="hint" style="margin:0" id="skillModalHint">Matched by name. Override any row; a caller with no skill arrives unrouted.</div>
+      <div class="table-wrap"><div class="table-scroll" style="max-height:420px">
+        <table class="data">
+          <thead><tr><th>Caller</th><th class="num">Leads</th><th>Matched skill</th><th>Override</th></tr></thead>
+          <tbody id="skillBody"></tbody>
+        </table>
+      </div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('skillModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="applyMapping()">Use this mapping</button>
+    </div>
+  </div>
+</div>
+
+
+      </div>
+    </main>
+  </div>
+
+  <div class="toasts"></div>
+
+  <script src="/static/js/common.js"></script>
+  <script>
+    /* Hold a connection open for as long as this tab is, so a console running
+       with no window knows somebody is still there. */
+    (function holdKeepalive() {
+      let source = null;
+      function connect() {
+        try {
+          source = new EventSource("/keepalive");
+          source.onerror = function () {
+            if (source) { source.close(); source = null; }
+            setTimeout(connect, 4000);
+          };
+        } catch (err) { /* SSE unavailable — the console simply stays running */ }
+      }
+      connect();
+      window.addEventListener("pagehide", function () {
+        if (source) { source.close(); source = null; }
+      });
+    })();
+
+    /* Readiness chips in the sidebar — a fast way to see that a link or a key
+       is missing before a build fails halfway through. */
+    (async function showCredentials() {
+      const labels = {
+        lsq: "LeadSquared", roster: "Roster", cer: "Chat/Email/Ref",
+        incoming: "Incoming", ozonetel: "Ozonetel", high: "High Priority",
+        mcube: "MCube", acefone: "Acefone",
+      };
+      try {
+        const res = await apiGet("/api/health");
+        const host = document.getElementById("credBadges");
+        host.innerHTML = Object.entries(labels).map(([key, label]) => {
+          const set = res.credentials[key];
+          return `<span class="chip ${set ? "" : "bad"}" title="${set ? "Configured" : "Not configured — open Settings"}">${esc(label)}</span>`;
+        }).join("");
+      } catch (err) { /* the page still works without the badges */ }
+    })();
+  </script>
+  
+<script>
+const REPORTS = window.ERC_REPORTS = [{"filename": "Chat_Email_Referral", "key": "chat_email_referral", "needs_upload": null, "push_configured": false, "report_type": "Chat/Email/Referral", "subtitle": "Hand-kept enquiry sheet, enriched from LeadSquared and the enrollment tracker.", "title": "Chat, Email \u0026 Referral"}, {"filename": "Incoming_Report", "key": "incoming", "needs_upload": null, "push_configured": false, "report_type": "Incoming", "subtitle": "Sales incoming calls from the Ozonetel API, merged with the master sheet and resolved against LeadSquared.", "title": "Incoming Leads"}, {"filename": "High_Priority_Report", "key": "high_priority", "needs_upload": null, "push_configured": false, "report_type": "High Priority", "subtitle": "This month\u0027s and last month\u0027s lead sheets, resolved against LeadSquared by Prospect ID.", "title": "High Priority Leads"}];
+let TOKEN = null;
+let META = null;
+let BUILT = {};
+let RULE_ACTION = null;
+let DIALER = null;
+let SOURCE = { mcube: "made", acefone: "made" };
+let UPLOADED = { mcube: null, acefone: null };
+let SKILL_OVERRIDES = {};
+let CALLERS = null;
+let PICKED_TEAMS = new Set();
+let PICKED_CALLERS = new Set();
+
+const stream = new JobStream({
+  logId: "jobLog", stopId: "stopBtn",
+  onCount: (rows, page) => setStatus("jobStatus", `Fetching from LeadSquared — ${num(rows)} leads, page ${page}…`, "busy"),
+  onStep: (text) => setStatus("jobStatus", text, "busy"),
+  onDone: (jobId) => jobFinished(jobId),
+});
+
+const dialerStream = new JobStream({
+  logId: "dialerLog", stopId: "dialerStopBtn",
+  progressId: "dialerProgress", progressTextId: "dialerProgressText",
+  onDone: (jobId) => pushFinished(jobId),
+});
+
+/* ------------------------------------------------------------ BUSY */
+function setBusy(busy) {
+  ["fetchBtn", "buildBtn", "rebuildBtn", "makeFilesBtn", "pushMcubeBtn", "pushAcefoneBtn"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el && busy) el.disabled = true;
+  });
+  document.querySelectorAll("[data-build]").forEach((el) => { el.disabled = busy || !TOKEN; });
+  if (!busy) {
+    document.getElementById("fetchBtn").disabled = false;
+    document.getElementById("rebuildBtn").disabled = false;
+    document.getElementById("buildBtn").disabled = !TOKEN;
+    document.getElementById("makeFilesBtn").disabled = !Object.keys(BUILT).length;
+    document.getElementById("pushMcubeBtn").disabled = false;
+    document.getElementById("pushAcefoneBtn").disabled = false;
+  }
+}
+
+async function startJob(url, payload, startText) {
+  setBusy(true);
+  document.getElementById("logBox").open = true;
+  stream.clear();
+  setStatus("jobStatus", startText, "busy");
+  try {
+    const res = await apiJson(url, payload);
+    stream.attach(res.job_id);
+  } catch (err) {
+    setBusy(false);
+    setStatus("jobStatus", err.message, "bad");
+    toast(err.message, "error");
+  }
+}
+
+async function jobFinished(jobId) {
+  const outcome = await jobOutcome(jobId);
+  setStatus("jobStatus", outcome.text, outcome.type);
+  await reload();
+  setBusy(false);
+}
+
+/* ------------------------------------------------------------ STEP 1 */
+function fetchParams() {
+  const days = Number(document.getElementById("fetchDays").value || 30);
+  const basis = document.getElementById("fetchBasis").value;
+  if (!days || days < 1 || days > 365) throw new Error("Days must be between 1 and 365.");
+  return { days, basis };
+}
+
+function startFetch() {
+  let params;
+  try { params = fetchParams(); } catch (err) { toast(err.message, "error"); return; }
+  startJob("/api/fetch", params, "Fetching from LeadSquared…");
+}
+
+function showFetch() {
+  const badge = document.getElementById("fetchBadge");
+  if (!META) { badge.textContent = "Nothing fetched"; badge.className = "badge"; return; }
+  badge.textContent = `${num(META.stats.rows)} leads · ${META.days}d on ${META.basis_label}`;
+  badge.className = "badge good";
+  const dl = document.getElementById("dlSnapshot");
+  dl.href = `/download/${encodeURIComponent(TOKEN)}/snapshot`;
+  dl.classList.remove("hidden");
+
+  const s = META.stats;
+  const o = META.ozonetel || {};
+  const facts = [
+    ["Leads fetched", num(s.rows)],
+    ["With a Report_Type", num(s.tagged)],
+    ["Follow-up date set", s.follow_up === undefined ? "—" : num(s.follow_up)],
+    ["No last call", num(s.no_last_call)],
+    ["Ozonetel sales calls", o.error ? "—" : num(o.calls)],
+  ];
+  const host = document.getElementById("fetchFacts");
+  host.innerHTML = facts.map(([k, v]) => `<div class="stat"><div class="stat-value">${esc(v)}</div><div class="stat-label">${esc(k)}</div></div>`).join("");
+  host.classList.remove("hidden");
+  const hint = document.getElementById("ozoneHint");
+  if (o.error) {
+    hint.innerHTML = `<strong>Ozonetel:</strong> ${esc(o.error)}`;
+  } else if (o.from) {
+    hint.innerHTML = `<strong>Ozonetel:</strong> ${esc(o.from)} to ${esc(o.to)} — ${num(o.calls)} sales incoming call(s) ` +
+      `from ${num(o.numbers)} number(s). Master sheet's newest call: ${esc(o.master_last_day || "none")}.` +
+      (o.note ? `<br />${esc(o.note)}` : "");
+  } else {
+    hint.textContent = "";
+  }
+  if ((META.zip_fields_missing || []).length) {
+    toast(`${META.zip_fields_missing.join(" and ")} are not on this LeadSquared account — the Zip Intent columns will be blank.`, "error", 9000);
+  }
+}
+
+/* ------------------------------------------------------------ STEP 2 */
+function buildAll() {
+  if (!TOKEN) { toast("Fetch first.", "error"); return; }
+  startJob("/api/build-all", { token: TOKEN }, "Building the reports…");
+}
+
+function showBuiltLine() {
+  const parts = REPORTS.filter((r) => BUILT[r.key]).map((r) =>
+    `${esc(r.title)}: ${num(BUILT[r.key].rows)} rows, <strong>${num(BUILT[r.key].pending)}</strong> unmatched`);
+  document.getElementById("builtLine").innerHTML = parts.length ? parts.join(" &middot; ") : "";
+  const anyRules = Object.values(BUILT).find((b) => b && b.rules);
+  document.getElementById("rulesUsed").innerHTML = anyRules
+    ? `Last built with ${Object.entries(anyRules.rules.breach_days).map(([k, v]) => `${esc(k)} ${v}d`).join(", ")}; ` +
+      `DNP ${esc(anyRules.rules.dnp_caption)}.` : "";
+}
+
+/* ------------------------------------------------------------ RULES (step 4) */
+async function askRules(action) {
+  if (action === "rebuild") {
+    try { fetchParams(); } catch (err) { toast(err.message, "error"); return; }
+  } else if (!TOKEN) { toast("Fetch first.", "error"); return; }
+  RULE_ACTION = action;
+  try {
+    const r = await apiGet("/api/rules");
+    document.getElementById("rulesDays").innerHTML = r.stages.map((stage) => `
+      <div class="field" style="margin:0">
+        <label class="label no-caps" for="days-${esc(stage)}">${esc(stage)}</label>
+        <input class="input" type="number" min="0" max="365" data-stage="${esc(stage)}"
+               id="days-${esc(stage)}" value="${esc(r.breach_days[stage])}" />
+      </div>`).join("");
+    document.getElementById("dnpCounter").value = r.dnp.counter;
+    document.getElementById("dnpOp").value = r.dnp.op;
+    document.getElementById("dnpValue").value = r.dnp.value;
+  } catch (err) { toast(err.message, "error"); return; }
+  const one = action.startsWith("one:");
+  document.getElementById("rulesTitle").textContent = one
+    ? `Before rebuilding ${REPORTS.find((x) => x.key === action.slice(4)).title}` : "Before fetching and rebuilding";
+  document.getElementById("rulesGo").textContent = one ? "Rebuild" : "Fetch and rebuild";
+  openModal("rulesModal");
+}
+
+function readRules() {
+  const breach_days = {};
+  document.querySelectorAll("#rulesDays input[data-stage]").forEach((el) => {
+    breach_days[el.dataset.stage] = el.value.trim();
+  });
+  return {
+    breach_days,
+    dnp: {
+      counter: document.getElementById("dnpCounter").value,
+      op: document.getElementById("dnpOp").value,
+      value: document.getElementById("dnpValue").value.trim(),
+    },
+  };
+}
+
+function rulesConfirmed() {
+  const rules = readRules();
+  closeModal("rulesModal");
+  if (RULE_ACTION === "rebuild") {
+    startJob("/api/refresh", Object.assign(fetchParams(), { rules }), "Fetching again, then rebuilding…");
+  } else if (RULE_ACTION && RULE_ACTION.startsWith("one:")) {
+    startJob(`/api/reports/${RULE_ACTION.slice(4)}/build`, { token: TOKEN, rules }, "Rebuilding…");
+  }
+  document.getElementById("logBox").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+/* ------------------------------------------------------------ THE REPORTS */
+function renderReports() {
+  const host = document.getElementById("reportCards");
+  const any = Object.keys(BUILT).length > 0;
+  document.getElementById("reportsEmpty").classList.toggle("hidden", any);
+  if (!any) { host.innerHTML = ""; return; }
+  host.innerHTML = REPORTS.map((r) => {
+    const built = BUILT[r.key];
+    if (!built) {
+      return `<div class="card sub"><div class="card-head"><div><h3 class="card-title">${esc(r.title)}</h3></div>
+        <span class="badge">Not built</span></div></div>`;
+    }
+    const oz = built.ozonetel && built.ozonetel.from
+      ? `<div class="hint">Ozonetel ${esc(built.ozonetel.from)} to ${esc(built.ozonetel.to)}: ${num(built.ozonetel.calls)} call(s).</div>` : "";
+    return `
+      <div class="card sub" id="card-${r.key}">
+        <div class="card-head">
+          <div>
+            <h3 class="card-title">${esc(r.title)}</h3>
+            <p class="card-sub">Built ${esc(new Date(built.built_at).toLocaleString())}</p>
+          </div>
+          <span class="badge good">Built</span>
+        </div>
+        <div class="card-body">
+          <div class="stats compact">
+            <div class="stat"><div class="stat-value">${num(built.rows)}</div><div class="stat-label">Rows</div></div>
+            <div class="stat"><div class="stat-value">${num(built.breached)}</div><div class="stat-label">Breached</div></div>
+            <div class="stat"><div class="stat-value">${num(built.dnp)}</div><div class="stat-label">DNP</div></div>
+            <div class="stat"><div class="stat-value">${num(built.fresh)}</div><div class="stat-label">Fresh</div></div>
+            <div class="stat ${built.pending ? "warn" : ""}"><div class="stat-value">${num(built.pending)}</div><div class="stat-label">Unmatched</div></div>
+          </div>
+          ${oz}
+          <div class="row" style="margin-top:10px;flex-wrap:wrap">
+            <a class="btn btn-sm" href="/download/${encodeURIComponent(TOKEN)}/${r.key}/xlsx">Excel</a>
+            <a class="btn btn-sm" href="/download/${encodeURIComponent(TOKEN)}/${r.key}/csv">CSV</a>
+            <button class="btn btn-sm" onclick="preview('${r.key}')">Preview</button>
+            <button class="btn btn-sm btn-primary" onclick="push('${r.key}')" ${r.push_configured ? "" : "disabled title='No Apps Script link set — add one on Setup and links'"}>Push to Sheet</button>
+            <a class="btn btn-sm" href="/analysis/${r.key}">Dashboard &rarr;</a>
+            <button class="btn btn-sm" data-build="1" onclick="askRules('one:${r.key}')">Rebuild just this one</button>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+async function push(key) {
+  if (!confirm("Push this report to its Google Sheet? It replaces what is there now.")) return;
+  startJob(`/api/reports/${key}/push`, { token: TOKEN }, "Pushing to the Google Sheet…");
+}
+
+async function preview(key) {
+  try {
+    const res = await apiGet(`/api/reports/${key}/preview?token=${encodeURIComponent(TOKEN)}&limit=50`);
+    const report = REPORTS.find((r) => r.key === key);
+    document.getElementById("previewCard").classList.remove("hidden");
+    document.getElementById("previewSub").textContent = `${report.title} — the sheet exactly as it will be pushed.`;
+    document.getElementById("previewBadge").textContent = `${num(res.rows)} rows · ${res.columns.length} columns`;
+    document.getElementById("previewHead").innerHTML =
+      res.columns.map((c) => `<th class="${c.startsWith("Zip Intent") ? "accent" : ""}">${esc(c)}</th>`).join("");
+    document.getElementById("previewBody").innerHTML = res.preview.map((row) =>
+      `<tr>${res.columns.map((c) => `<td>${esc(row[c])}</td>`).join("")}</tr>`).join("");
+    document.getElementById("previewFoot").textContent = `Showing ${num(res.preview.length)} of ${num(res.rows)} rows.`;
+    document.getElementById("previewCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (err) { toast(err.message, "error"); }
+}
+
+async function refreshSources() {
+  try {
+    const res = await apiJson("/api/sources/refresh", {});
+    toast(res.message, "success");
+  } catch (err) { toast(err.message, "error"); }
+}
+
+/* ------------------------------------------------------------ STEP 3 */
+async function loadPending() {
+  const dl = document.getElementById("dlCombined");
+  const badge = document.getElementById("pendingBadge");
+  if (!TOKEN || !Object.keys(BUILT).length) {
+    dl.classList.add("disabled"); badge.textContent = "Build first"; badge.className = "badge";
+    document.getElementById("pendingSplit").textContent = "";
+    document.getElementById("pendingBox").classList.add("hidden");
+    return;
+  }
+  try {
+    const res = await apiGet(`/api/update/pending?token=${encodeURIComponent(TOKEN)}`);
+    dl.href = `/download/${encodeURIComponent(TOKEN)}/lsq-update`;
+    dl.classList.toggle("disabled", !res.total);
+    badge.textContent = res.total ? `${num(res.total)} lead(s) to update` : "Everything matched";
+    badge.className = `badge ${res.total ? "warn" : "good"}`;
+    document.getElementById("pendingSplit").innerHTML = Object.entries(res.reports)
+      .filter(([, r]) => r.built)
+      .map(([key, r]) => r.rows
+        ? `${esc(r.title)}: <a href="/download/${encodeURIComponent(TOKEN)}/${key}/pending">${num(r.rows)}</a>`
+        : `${esc(r.title)}: 0`).join(" &middot; ");
+    const box = document.getElementById("pendingBox");
+    box.classList.toggle("hidden", !res.preview.length);
+    document.getElementById("pendingBody").innerHTML = res.preview.map((row) => `
+      <tr><td class="mono">${esc(row["Phone Number"])}</td><td class="mono">${esc(row["Prospect ID"])}</td>
+          <td>${esc(row["Email"])}</td><td>${esc(row["Report_Type"])}</td></tr>`).join("");
+    document.getElementById("pendingFoot").textContent = `Showing ${num(res.preview.length)} of ${num(res.total)} rows.`;
+  } catch (err) { badge.textContent = "—"; }
+}
+
+/* ------------------------------------------------------------ DIALER FILES */
+const CATS = [
+  ["breached", "Breached", "Follow-up overdue, or no call within the stage's days."],
+  ["dnp", "Less-dialled DNP", ""],
+  ["fresh", "Fresh", "New Lead, Re-enquired Lead, Opportunity Created, Untouched Lead."],
+];
+
+function pickedCats() { return [...document.querySelectorAll("input[data-cat]:checked")].map((b) => b.value); }
+function pickedReports() { return [...document.querySelectorAll("input[data-rep]:checked")].map((b) => b.value); }
+
+async function loadDialer() {
+  const badge = document.getElementById("dialerBadge");
+  if (!TOKEN || !Object.keys(BUILT).length) {
+    badge.textContent = "Build first"; badge.className = "badge";
+    document.getElementById("catGrid").innerHTML = "";
+    document.getElementById("reportPicks").innerHTML = "";
+    document.getElementById("callerPickers").innerHTML = "";
+    return;
+  }
+  let res;
+  try { res = await apiGet(`/api/dialers/counts?token=${encodeURIComponent(TOKEN)}`); }
+  catch (err) { return; }
+  const picked = new Set(pickedCats());
+  const reportsPicked = new Set(pickedReports());
+  const keys = Object.keys(res.reports);
+  const total = (cat) => keys.reduce((n, k) => n + (res.reports[k][cat] || 0), 0);
+  const dnpText = res.rules ? `Call Not Connected / Not Picking Up with ${res.rules.dnp_caption}.` : "";
+  document.getElementById("catGrid").innerHTML = CATS.map(([cat, label, hint]) => `
+    <div class="cat-card">
+      <label class="check"><input type="checkbox" value="${cat}" data-cat="1" onchange="loadCallers(false)"
+          ${picked.has(cat) || (!picked.size && cat === "breached") ? "checked" : ""} />
+        <span>${esc(label)}</span><span class="picker-count">${num(total(cat))}</span></label>
+      <div class="hint">${esc(cat === "dnp" ? dnpText : hint)}
+        ${keys.map((k) => `${esc(res.reports[k].title)} ${num(res.reports[k][cat])}`).join(" · ")}</div>
+    </div>`).join("");
+  document.getElementById("reportPicks").innerHTML = keys.map((k) => `
+    <label class="check"><input type="checkbox" value="${k}" data-rep="1" onchange="loadCallers(false)"
+        ${!reportsPicked.size || reportsPicked.has(k) ? "checked" : ""} />
+      <span>${esc(res.reports[k].title)}</span></label>`).join("");
+  badge.textContent = "Ready"; badge.className = "badge good";
+
+  const r = res.ready;
+  const missing = [];
+  if (!r.mcube_agents) missing.push("an MCube agents token (for Agent Number)");
+  if (!r.mcube) missing.push("the MCube app token and API key (to push)");
+  if (!r.acefone) missing.push("the Acefone token (to push)");
+  document.getElementById("dialerHint").innerHTML = missing.length
+    ? `Setup and links is missing ${missing.join(", ")}. Files can still be made.` : "";
+  if (res.last && res.last.leads !== undefined) showDialer(res.last);
+  await loadCallers(false);
+}
+
+/* The caller picker: Teams narrow the Caller list, like Leads Console.
+   Nothing ticked means every caller. */
+async function loadCallers(refresh) {
+  if (!TOKEN || !Object.keys(BUILT).length) return;
+  try {
+    const res = await apiJson("/api/dialers/owners", {
+      token: TOKEN, categories: pickedCats(), reports: pickedReports(), refresh: !!refresh });
+    CALLERS = res;
+    if (refresh) toast(res.roster_loaded ? "Roster loaded." : "Could not read the roster — showing LeadSquared owners.", res.roster_loaded ? "success" : "error");
+    renderCallers();
+  } catch (err) { toast(err.message, "error"); }
+}
+
+function renderCallers() {
+  if (!CALLERS) return;
+  const teamCounts = {};
+  CALLERS.callers.forEach((c) => { teamCounts[c.team] = (teamCounts[c.team] || 0) + c.leads; });
+  const visible = CALLERS.callers.filter((c) => !PICKED_TEAMS.size || PICKED_TEAMS.has(c.team));
+  // A ticked caller whose team was unticked drops out of the pick.
+  [...PICKED_CALLERS].forEach((name) => {
+    if (!visible.some((c) => c.caller === name)) PICKED_CALLERS.delete(name);
+  });
+  const scroll = {};
+  document.querySelectorAll("#callerPickers .picker-list").forEach((el) => { scroll[el.dataset.key] = el.scrollTop; });
+  document.getElementById("callerPickers").innerHTML = `
+    <div class="picker">
+      <div class="picker-head"><span class="picker-title">Team · ${CALLERS.teams.length}</span>
+        <button class="link-btn" onclick="clearCallers('team')">None</button></div>
+      <div class="picker-list" data-key="team">
+        ${CALLERS.teams.map((t) => `
+          <label class="check ${teamCounts[t] ? "" : "muted"}"><input type="checkbox" ${PICKED_TEAMS.has(t) ? "checked" : ""}
+              onchange="toggleTeam(this.value, this.checked)" value="${esc(t)}" />
+            <span>${esc(t)}</span><span class="picker-count">${num(teamCounts[t] || 0)}</span></label>`).join("")}
+      </div>
+    </div>
+    <div class="picker">
+      <div class="picker-head"><span class="picker-title">Caller · ${visible.length}</span>
+        <button class="link-btn" onclick="allCallers()">All / none</button></div>
+      <div class="picker-list" data-key="caller">
+        ${visible.map((c) => `
+          <label class="check ${c.leads ? "" : "muted"}"><input type="checkbox" ${PICKED_CALLERS.has(c.caller) ? "checked" : ""}
+              onchange="toggleCaller(this.value, this.checked)" value="${esc(c.caller)}" />
+            <span>${esc(c.caller)}</span><span class="picker-count">${num(c.leads)}</span></label>`).join("")}
+      </div>
+    </div>`;
+  document.querySelectorAll("#callerPickers .picker-list").forEach((el) => { el.scrollTop = scroll[el.dataset.key] || 0; });
+  const leadsOf = (list) => list.reduce((n, c) => n + c.leads, 0);
+  const chosen = pickedOwners();
+  document.getElementById("callerSummary").textContent = chosen
+    ? `${chosen.length} caller(s) — ${num(leadsOf(CALLERS.callers.filter((c) => chosen.includes(c.caller))))} lead(s).`
+    : `All callers — ${num(leadsOf(CALLERS.callers))} lead(s).`;
+}
+
+function toggleTeam(team, on) { on ? PICKED_TEAMS.add(team) : PICKED_TEAMS.delete(team); renderCallers(); }
+function toggleCaller(name, on) { on ? PICKED_CALLERS.add(name) : PICKED_CALLERS.delete(name); renderCallers(); }
+function clearCallers() { PICKED_TEAMS.clear(); PICKED_CALLERS.clear(); renderCallers(); }
+function allCallers() {
+  const visible = CALLERS.callers.filter((c) => !PICKED_TEAMS.size || PICKED_TEAMS.has(c.team));
+  const allOn = visible.every((c) => PICKED_CALLERS.has(c.caller));
+  visible.forEach((c) => (allOn ? PICKED_CALLERS.delete(c.caller) : PICKED_CALLERS.add(c.caller)));
+  renderCallers();
+}
+
+/** The owners to keep: the ticked callers, else everyone in the ticked teams, else null (all). */
+function pickedOwners() {
+  if (!CALLERS) return null;
+  if (PICKED_CALLERS.size) return [...PICKED_CALLERS];
+  if (PICKED_TEAMS.size) return CALLERS.callers.filter((c) => PICKED_TEAMS.has(c.team)).map((c) => c.caller);
+  return null;
+}
+
+async function makeFiles() {
+  const categories = pickedCats();
+  const reports = pickedReports();
+  if (!categories.length) { toast("Tick at least one kind of lead.", "error"); return; }
+  if (!reports.length) { toast("Tick at least one report.", "error"); return; }
+  const btn = document.getElementById("makeFilesBtn");
+  btn.disabled = true;
+  document.getElementById("dialerHint").textContent = "Making the files…";
+  try {
+    const res = await apiJson("/api/dialers/files", { token: TOKEN, categories, reports, owners: pickedOwners() });
+    showDialer(res.summary);
+    SOURCE = { mcube: "made", acefone: "made" };
+    SKILL_OVERRIDES = {};
+    document.getElementById("mcubeFile").value = "";
+    document.getElementById("acefoneFile").value = "";
+    showSources();
+    document.getElementById("dialerHint").textContent = "";
+    toast(`${num(res.summary.leads)} lead(s) ready for the dialers.`, "success");
+  } catch (err) {
+    document.getElementById("dialerHint").textContent = err.message;
+    toast(err.message, "error");
+  } finally { btn.disabled = false; }
+}
+
+function showDialer(s) {
+  DIALER = s;
+  document.getElementById("dialerResult").classList.remove("hidden");
+  const facts = [
+    ["Leads", num(s.leads)],
+    ...Object.entries(s.by_category || {}).map(([k, v]) => [k, num(v)]),
+    ["Duplicates removed", num(s.duplicates_removed)],
+    ["MCube rows", num(s.mcube_rows)],
+    ["Acefone rows", num(s.acefone_rows)],
+  ];
+  document.getElementById("dialerFacts").innerHTML = facts.map(([k, v]) =>
+    `<div class="stat"><div class="stat-value">${esc(v)}</div><div class="stat-label">${esc(k)}</div></div>`).join("");
+  const notes = [`For ${esc(s.owners || "all callers")}.`];
+  if (s.agent_error) notes.push(esc(s.agent_error));
+  if (s.mcube_skipped) notes.push(`${num(s.mcube_skipped)} lead(s) held out of the MCube file — no MCube agent for ` +
+    `${esc((s.mcube_no_agent || []).slice(0, 8).join(", "))}${(s.mcube_no_agent || []).length > 8 ? "…" : ""}. They are still in the Acefone file.`);
+  if (s.no_owner) notes.push(`${num(s.no_owner)} lead(s) have no owner in LeadSquared.`);
+  if (s.no_phone) notes.push(`${num(s.no_phone)} lead(s) had no usable phone number and were left out.`);
+  document.getElementById("dialerNotes").innerHTML = notes.join("<br />");
+  const t = encodeURIComponent(TOKEN);
+  document.getElementById("dlMcube").href = `/download/${t}/dialer/mcube`;
+  document.getElementById("dlAcefone").href = `/download/${t}/dialer/acefone`;
+  document.getElementById("dlLeads").href = `/download/${t}/dialer/leads`;
+  const skipped = document.getElementById("dlSkipped");
+  skipped.href = `/download/${t}/dialer/skipped`;
+  skipped.classList.toggle("hidden", !s.mcube_skipped);
+  document.getElementById("ownerBody").innerHTML = (s.per_owner || []).map((o) =>
+    `<tr><td>${esc(o.owner)}</td><td class="num">${num(o.leads)}</td><td class="mono">${esc(o.agent) || '<span class="pill bad">none</span>'}</td></tr>`).join("");
+  showSources();
+}
+
+/* ------------------------------------------------------------ PUSH PANELS */
+function showSources() {
+  ["mcube", "acefone"].forEach((target) => {
+    const chip = document.getElementById(`${target}Source`);
+    if (SOURCE[target] === "upload" && UPLOADED[target]) {
+      chip.className = "source-chip ready";
+      chip.innerHTML = `<span class="dot"></span><span>Using <strong>${esc(UPLOADED[target].name)}</strong> — ${num(UPLOADED[target].rows)} row(s), uploaded.</span>`;
+    } else if (DIALER) {
+      const rows = target === "mcube" ? DIALER.mcube_rows : DIALER.acefone_rows;
+      chip.className = "source-chip ready";
+      chip.innerHTML = `<span class="dot"></span><span>Using the dialer file made above — <strong>${num(rows)}</strong> lead(s) for ${esc(DIALER.owners || "all callers")}.</span>`;
+    } else {
+      chip.className = "source-chip";
+      chip.textContent = "No file yet — make the dialer files above, or upload one.";
+    }
+  });
+}
+
+async function uploadFile(target) {
+  const input = document.getElementById(`${target}File`);
+  if (!input.files.length) { SOURCE[target] = "made"; showSources(); return; }
+  if (!TOKEN) { toast("Fetch first.", "error"); input.value = ""; return; }
+  const form = new FormData();
+  form.append("file", input.files[0]);
+  form.append("token", TOKEN);
+  try {
+    const res = await apiForm(`/api/dialers/upload/${target}`, form);
+    UPLOADED[target] = { name: res.name, rows: res.rows };
+    SOURCE[target] = "upload";
+    if (target === "acefone") SKILL_OVERRIDES = {};
+    showSources();
+  } catch (err) {
+    input.value = "";
+    SOURCE[target] = "made";
+    showSources();
+    toast(err.message, "error");
+  }
+}
+
+async function loadCampaigns() {
+  const sel = document.getElementById("mcubeCampaign");
+  sel.innerHTML = `<option value="">Loading…</option>`;
+  try {
+    const res = await apiGet("/api/dialers/mcube/campaigns");
+    sel.innerHTML = `<option value="">Choose a campaign</option>` +
+      res.campaigns.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("");
+  } catch (err) { sel.innerHTML = `<option value="">Could not load — check Setup and links</option>`; }
+}
+
+async function loadLists() {
+  const sel = document.getElementById("acefoneList");
+  sel.innerHTML = `<option value="">Loading…</option>`;
+  try {
+    const res = await apiGet("/api/dialers/acefone/lists");
+    sel.innerHTML = `<option value="">Choose a lead list</option>` +
+      res.lists.map((l) => `<option value="${esc(l.id)}">${esc(l.name)}</option>`).join("");
+  } catch (err) { sel.innerHTML = `<option value="">Could not load — check Setup and links</option>`; }
+  const skills = document.getElementById("skillList");
+  try {
+    const res = await apiGet("/api/dialers/acefone/skill-lists");
+    skills.innerHTML = `<option value="">Choose a skill list</option>` +
+      res.skill_lists.map((l) => `<option value="${esc(l.id)}" ${String(l.id) === String(res.selected) ? "selected" : ""}>${esc(l.name)}</option>`).join("");
+  } catch (err) { skills.innerHTML = `<option value="">Could not load</option>`; }
+}
+
+async function pickSkillList() {
+  const id = document.getElementById("skillList").value;
+  SKILL_OVERRIDES = {};
+  try { await apiJson("/api/dialers/acefone/skill-list", { id }); } catch (err) { toast(err.message, "error"); }
+}
+
+let MAPPING = null;
+async function openSkillMapping() {
+  if (!TOKEN) { toast("Fetch first.", "error"); return; }
+  try {
+    const res = await apiJson("/api/dialers/acefone/skill-mapping", {
+      token: TOKEN, skill_list_id: document.getElementById("skillList").value || null,
+      overrides: SKILL_OVERRIDES, source: SOURCE.acefone });
+    MAPPING = res;
+    const options = (selected) => `<option value="">— auto —</option>` + res.skills.map((s) =>
+      `<option value="${esc(s.id)}" ${String(s.id) === String(selected) ? "selected" : ""}>${esc(s.name)}</option>`).join("");
+    document.getElementById("skillBody").innerHTML = res.mapping.map((r) => `
+      <tr><td>${esc(r.caller)}</td><td class="num">${num(r.leads)}</td>
+        <td>${r.skill_name ? esc(r.skill_name) : '<span class="pill bad">no match — unrouted</span>'}</td>
+        <td><select class="input map-select" data-caller="${esc(r.caller)}" style="min-width:200px">${options(SKILL_OVERRIDES[r.caller])}</select></td></tr>`).join("");
+    document.getElementById("skillModalHint").textContent =
+      `${res.mapping.length - res.unmatched.length} of ${res.mapping.length} caller(s) matched by name. Override any row; a caller with no skill arrives unrouted.`;
+    openModal("skillModal");
+  } catch (err) { toast(err.message, "error"); }
+}
+
+function applyMapping() {
+  SKILL_OVERRIDES = {};
+  document.querySelectorAll(".map-select").forEach((el) => {
+    if (el.value) SKILL_OVERRIDES[el.dataset.caller] = el.value;
+  });
+  closeModal("skillModal");
+  const n = Object.keys(SKILL_OVERRIDES).length;
+  document.getElementById("mappingHint").textContent = n ? `${n} caller(s) overridden by hand for the next push.` : "";
+}
+
+function pushDialer(target) {
+  const sel = document.getElementById(target === "mcube" ? "mcubeCampaign" : "acefoneList");
+  if (!sel.value) { toast(target === "mcube" ? "Choose a campaign first." : "Choose a lead list first.", "error"); return; }
+  if (SOURCE[target] !== "upload" && !DIALER) { toast("Make the dialer files first, or upload a file.", "error"); return; }
+  const name = sel.options[sel.selectedIndex].textContent;
+  const rows = SOURCE[target] === "upload" ? UPLOADED[target].rows
+    : (target === "mcube" ? DIALER.mcube_rows : DIALER.acefone_rows);
+  if (!confirm(`Push ${rows} lead(s) to ${target === "mcube" ? "MCube" : "Acefone"} — ${name}?`)) return;
+  const payload = { token: TOKEN, target, id: sel.value, name, source: SOURCE[target] };
+  if (target === "mcube") {
+    payload.retry_attempts = document.getElementById("mcubeRetryAttempts").value.trim();
+    payload.retry_time = document.getElementById("mcubeRetryTime").value.trim();
+    payload.priority = document.getElementById("mcubePriority").value.trim();
+  } else {
+    payload.priority = document.getElementById("acefonePriority").value.trim();
+    payload.skill_map = SKILL_OVERRIDES;
+    payload.skill_list_id = document.getElementById("skillList").value || null;
+  }
+  startPush(target, payload, name);
+}
+
+async function startPush(target, payload, name) {
+  const statusId = `${target}Status`;
+  setBusy(true);
+  dialerStream.clear();
+  setStatus(statusId, `Pushing to ${name}…`, "busy");
+  try {
+    const res = await apiJson("/api/dialers/push", payload);
+    dialerStream.attach(res.job_id);
+    document.getElementById("dialerLog").scrollIntoView({ behavior: "smooth", block: "center" });
+  } catch (err) {
+    setBusy(false);
+    setStatus(statusId, err.message, "bad");
+    toast(err.message, "error");
+  }
+}
+
+async function pushFinished(jobId) {
+  const outcome = await jobOutcome(jobId);
+  const target = outcome.job && outcome.job.kind === "dialer:acefone" ? "acefone" : "mcube";
+  setStatus(`${target}Status`, outcome.text, outcome.type);
+  toast(outcome.text, outcome.type === "good" ? "success" : "error");
+  setBusy(false);
+}
+
+/* ------------------------------------------------------------ LOAD */
+async function reload() {
+  try {
+    const res = await apiGet("/api/fetch/latest");
+    if (res.meta) { META = res.meta; TOKEN = res.meta.token; BUILT = res.reports || {}; }
+    else { META = null; TOKEN = null; BUILT = {}; }
+  } catch (err) { /* keep what we have */ }
+  showFetch();
+  showBuiltLine();
+  renderReports();
+  await loadPending();
+  await loadDialer();
+  document.getElementById("step1").classList.toggle("done", !!META);
+  document.getElementById("step2").classList.toggle("done", Object.keys(BUILT).length > 0);
+}
+
+(async function boot() {
+  const s = window.ERC_DEFAULTS ? window.ERC_DEFAULTS() : {"retry_attempts": 3, "retry_time": 180};
+  document.getElementById("mcubeRetryAttempts").value = s.retry_attempts;
+  document.getElementById("mcubeRetryTime").value = s.retry_time;
+  await reload();
+  setBusy(false);
+  showSources();
+  loadCampaigns();
+  loadLists();
+  if (META) setStatus("jobStatus", `Using the fetch from ${new Date(META.fetched_at).toLocaleString()}.`, "good");
+
+  // Jobs started before you navigated away: a live one is picked back up,
+  // a finished one is replayed into its log only.
+  const job = await reattachJob(stream, ["fetch", "build", "refresh", "build:", "push:"], (j, live) => {
+    if (live) { setBusy(true); setStatus("jobStatus", `${j.title} — still running.`, "busy"); }
+  });
+  if (!job) { stream.clear(); stream.write("Nothing has been run yet in this console.", ""); }
+  await reattachJob(dialerStream, ["dialer:"], (j, live) => {
+    const target = j.kind === "dialer:acefone" ? "acefone" : "mcube";
+    if (live) { setBusy(true); setStatus(`${target}Status`, `${j.title} — still running.`, "busy"); }
+  });
+})();
+</script>
+
+</body>
+</html>

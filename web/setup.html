@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Setup and links — Elite Reports Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="/static/css/erc.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="/static/js/erc.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#9636;</text></svg>" />
+</head>
+<body data-page="setup">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-name">Elite Reports Console</div>
+        <div class="brand-sub">Fetch &middot; Build &middot; Push &middot; Analyse</div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-label">Reports</div>
+        <a class="nav-item " href="/">
+          <span class="nav-icon">&#9783;</span> Reports
+        </a>
+
+        <div class="nav-label">Analysis</div>
+        
+        <a class="nav-item "
+           href="/analysis/chat_email_referral">
+          <span class="nav-icon">&#9636;</span> Chat, Email & Referral
+        </a>
+        
+        <a class="nav-item "
+           href="/analysis/incoming">
+          <span class="nav-icon">&#9636;</span> Incoming Leads
+        </a>
+        
+        <a class="nav-item "
+           href="/analysis/high_priority">
+          <span class="nav-icon">&#9636;</span> High Priority Leads
+        </a>
+        
+
+        <div class="nav-label">Configuration</div>
+        <a class="nav-item active" href="/setup">
+          <span class="nav-icon">&#9873;</span> Setup and links
+        </a>
+        <a class="nav-item " href="/settings">
+          <span class="nav-icon">&#9881;</span> Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="signature">
+          Developed and Designed by Amit Ray<br />
+          <a href="mailto:amitray@lawsikho.in">amitray@lawsikho.in</a>
+        </div>
+        <div id="credBadges" class="chip-list"></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 class="page-title">Setup and links</h1>
+          <p class="page-sub">Every API key and every sheet link, in one place. Paste, press Save &amp; test, go green.</p>
+        </div>
+        <div class="topbar-actions">
+          
+          <button class="btn btn-sm" type="button" id="themeToggle" onclick="toggleTheme()">Light</button>
+        </div>
+      </header>
+
+      <div class="content">
+        
+        
+
+<div class="card">
+  <div class="card-body">
+    <div class="info-box">
+      <b>Keys are your own:</b> the LeadSquared, Ozonetel, MCube and Acefone keys you paste here are saved for you only —
+      nobody else, admins included, can see them, and everything you run uses them. <b>Sheet and push links are shared:</b>
+      one set for everyone, changed only by a console admin. Saved keys show as dots; leave them alone to keep them, or paste
+      over them to replace. Your own behaviour settings — fetch defaults, breach rules, priorities, retries — are on
+      <a href="/settings">Settings</a>.
+    </div>
+  </div>
+</div>
+
+<!-- =============================================== 1. LEADSQUARED -->
+<div class="card" data-card="lsq">
+  <div class="card-head">
+    <div><h2 class="card-title"><span class="step-badge">1</span>LeadSquared</h2>
+      <p class="card-sub">Settings &rarr; API and Webhooks &rarr; API Access Keys. Every report is built from this fetch.</p></div>
+    <span class="badge" id="badge-lsq">Checking…</span>
+  </div>
+  <div class="card-body">
+    <div class="grid grid-3">
+      <div class="field">
+  <label class="label no-caps" for="LSQ_HOST">API host <code class="muted">LSQ_HOST</code></label>
+  
+  <input class="input mono" id="LSQ_HOST" autocomplete=off placeholder="api-in21.leadsquared.com" />
+  
+  <div class="hint">Paste it whole if you like — the scheme and <code>/v2/</code> are trimmed.</div>
+</div>
+      <div class="field">
+  <label class="label no-caps" for="LSQ_ACCESS_KEY">Access key <code class="muted">LSQ_ACCESS_KEY</code></label>
+  
+  <input class="input mono" id="LSQ_ACCESS_KEY" data-secret=1 type=password autocomplete=new-password placeholder="" />
+  
+  
+</div>
+      <div class="field">
+  <label class="label no-caps" for="LSQ_SECRET_KEY">Secret key <code class="muted">LSQ_SECRET_KEY</code></label>
+  
+  <input class="input mono" id="LSQ_SECRET_KEY" data-secret=1 type=password autocomplete=new-password placeholder="" />
+  
+  
+</div>
+    </div>
+    <div class="row">
+      <button class="btn btn-primary" onclick="saveCard('lsq', ['LSQ_HOST','LSQ_ACCESS_KEY','LSQ_SECRET_KEY'], 'lsq')">Save &amp; test</button>
+      <div class="status hidden" id="status-lsq" style="flex:1"></div>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================== 2. OZONETEL -->
+<div class="card" data-card="ozonetel">
+  <div class="card-head">
+    <div><h2 class="card-title"><span class="step-badge">2</span>Ozonetel</h2>
+      <p class="card-sub">The Incoming report's calls — the same key and username as the other Ozonetel app.</p></div>
+    <span class="badge" id="badge-ozonetel">Checking…</span>
+  </div>
+  <div class="card-body">
+    <div class="grid grid-2">
+      <div class="field">
+  <label class="label no-caps" for="OZONETEL_API_KEY">API key <code class="muted">OZONETEL_API_KEY</code></label>
+  
+  <input class="input mono" id="OZONETEL_API_KEY" data-secret=1 type=password autocomplete=new-password placeholder="" />
+  
+  
+</div>
+      <div class="field">
+  <label class="label no-caps" for="OZONETEL_USERNAME">Username <code class="muted">OZONETEL_USERNAME</code></label>
+  
+  <input class="input mono" id="OZONETEL_USERNAME" autocomplete=off placeholder="" />
+  
+  
+</div>
+    </div>
+    <div class="grid grid-2">
+      <div class="field">
+  <label class="label no-caps" for="OZONETEL_API_URL">CDR endpoint <code class="muted">OZONETEL_API_URL</code></label>
+  
+  <input class="input mono" id="OZONETEL_API_URL" autocomplete=off placeholder="" />
+  
+  <div class="hint">Ozonetel's domestic fetchCDRDetails URL. Change it only if Ozonetel gives you another.</div>
+</div>
+      <div class="field">
+  <label class="label no-caps" for="OZONETEL_SKILLS">Sales incoming skills <code class="muted">OZONETEL_SKILLS</code></label>
+  
+  <input class="input mono" id="OZONETEL_SKILLS" autocomplete=off placeholder="" />
+  
+  <div class="hint">Comma separated. <code>sales</code> is LawSikho_Incoming, <code>Arbitrage_Sales</code> is Arbitrage_Incoming.</div>
+</div>
+    </div>
+    <div class="row">
+      <button class="btn btn-primary" onclick="saveCard('ozonetel', ['OZONETEL_API_KEY','OZONETEL_USERNAME','OZONETEL_API_URL','OZONETEL_SKILLS'], 'ozonetel')">Save &amp; test</button>
+      <div class="status hidden" id="status-ozonetel" style="flex:1"></div>
+    </div>
+    <div class="hint">The test fetches today's calls — one request, so wait half a minute before testing again.</div>
+  </div>
+</div>
+
+<!-- =============================================== 3. MCUBE -->
+<div class="card" data-card="mcube">
+  <div class="card-head">
+    <div><h2 class="card-title"><span class="step-badge">3</span>MCube</h2>
+      <p class="card-sub">The same keys as Leads Console — copy them from its Setup page.</p></div>
+    <span class="badge" id="badge-mcube">Checking…</span>
+  </div>
+  <div class="card-body">
+    <h3 style="font-size:13px;margin:0 0 10px">Agent directory — each owner's Agent Number</h3>
+    <div class="field">
+  <label class="label no-caps" for="MCUBE_GETAGENTS_TOKEN">The <code>AuthToken</code> in <code>POST config.mcube.com/whatsapp-mcube/getagents</code> <code class="muted">MCUBE_GETAGENTS_TOKEN</code></label>
+  
+  <textarea class="input mono" id="MCUBE_GETAGENTS_TOKEN" rows="2" data-secret=1 placeholder="eyJ0eXAiOiJKV1Qi…"></textarea>
+  
+  
+</div>
+    <div class="field">
+  <label class="label no-caps" for="MCUBE_EMPLOYEES_AUTHORIZATION">The <code>Authorization</code> in <code>POST config.mcube.com/Restmcube-api/get-employees</code> (optional) <code class="muted">MCUBE_EMPLOYEES_AUTHORIZATION</code></label>
+  
+  <textarea class="input mono" id="MCUBE_EMPLOYEES_AUTHORIZATION" rows="2" data-secret=1 placeholder="eyJ0eXAiOiJKV1Qi…"></textarea>
+  
+  <div class="hint">Fills in agents getagents misses.</div>
+</div>
+    <div class="row">
+      <button class="btn" onclick="saveCard('mcube', ['MCUBE_GETAGENTS_TOKEN','MCUBE_EMPLOYEES_AUTHORIZATION'], 'mcube_agents', 'status-mcube-agents')">Save &amp; test</button>
+      <div class="status hidden" id="status-mcube-agents" style="flex:1"></div>
+    </div>
+
+    <h3 style="font-size:13px;margin:18px 0 10px">Campaigns and pushing</h3>
+    <div class="field">
+  <label class="label no-caps" for="MCUBE_AUTHORIZATION">App token — the campaign list <code class="muted">MCUBE_AUTHORIZATION</code></label>
+  
+  <textarea class="input mono" id="MCUBE_AUTHORIZATION" rows="2" data-secret=1 placeholder="eyJ0eXAiOiJKV1Qi…"></textarea>
+  
+  
+</div>
+    <div class="field">
+  <label class="label no-caps" for="MCUBE_API_KEY">API key — campaign upload (push) <code class="muted">MCUBE_API_KEY</code></label>
+  
+  <textarea class="input mono" id="MCUBE_API_KEY" rows="2" data-secret=1 placeholder=""></textarea>
+  
+  
+</div>
+    <div class="row">
+      <button class="btn" onclick="saveCard('mcube', ['MCUBE_AUTHORIZATION','MCUBE_API_KEY'], 'mcube', 'status-mcube')">Save &amp; test</button>
+      <div class="status hidden" id="status-mcube" style="flex:1"></div>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================== 4. ACEFONE -->
+<div class="card" data-card="acefone">
+  <div class="card-head">
+    <div><h2 class="card-title"><span class="step-badge">4</span>Acefone</h2>
+      <p class="card-sub">Token and the skill list owners are matched against — the same as Leads Console.</p></div>
+    <span class="badge" id="badge-acefone">Checking…</span>
+  </div>
+  <div class="card-body">
+    <div class="grid grid-2">
+      <div class="field">
+  <label class="label no-caps" for="ACEFONE_TOKEN">API token <code class="muted">ACEFONE_TOKEN</code></label>
+  
+  <textarea class="input mono" id="ACEFONE_TOKEN" rows="2" data-secret=1 placeholder=""></textarea>
+  
+  
+</div>
+      <div class="field">
+  <label class="label no-caps" for="ACEFONE_SKILL_LIST_ID">Skill list id <code class="muted">ACEFONE_SKILL_LIST_ID</code></label>
+  
+  <input class="input mono" id="ACEFONE_SKILL_LIST_ID" autocomplete=off placeholder="" />
+  
+  <div class="hint">Owners are matched to skills in this list by name; unmatched leads arrive unrouted.</div>
+</div>
+    </div>
+    <div class="row">
+      <button class="btn btn-primary" onclick="saveCard('acefone', ['ACEFONE_TOKEN','ACEFONE_SKILL_LIST_ID'], 'acefone')">Save &amp; test</button>
+      <div class="status hidden" id="status-acefone" style="flex:1"></div>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================== 5. ROSTER + SHARED SHEETS -->
+<div class="card">
+  <div class="card-head">
+    <div><h2 class="card-title"><span class="step-badge">5</span>Roster and shared sheets</h2>
+      <p class="card-sub">Published Google Sheets (CSV). Each Test reads the sheet and shows its columns.</p></div>
+    <span class="badge" id="badge-roster">Checking…</span>
+  </div>
+  <div class="card-body">
+    <div class="field">
+  <label class="label no-caps" for="ROSTER_URL">Roster — Caller Name, Team Name, Vertical, Email id <code class="muted">ROSTER_URL</code></label>
+  <div class="row" style="flex-wrap:nowrap">
+    <input class="input mono" id="ROSTER_URL" autocomplete="off" style="flex:1" />
+    <button class="btn btn-sm" type="button" onclick="saveSheet('ROSTER_URL')">Save &amp; test</button>
+  </div>
+  <div class="status hidden" id="status-ROSTER_URL" style="margin-top:8px"></div>
+  <div class="hint">Team and Verticals columns, the dashboard slicers, and matching owners to MCube agents and Acefone skills.</div>
+</div>
+    <div class="field">
+  <label class="label no-caps" for="REV_SHEET_URL">Enrollment tracker — Chat/Email/Referral and Incoming <code class="muted">REV_SHEET_URL</code></label>
+  <div class="row" style="flex-wrap:nowrap">
+    <input class="input mono" id="REV_SHEET_URL" autocomplete="off" style="flex:1" />
+    <button class="btn btn-sm" type="button" onclick="saveSheet('REV_SHEET_URL')">Save &amp; test</button>
+  </div>
+  <div class="status hidden" id="status-REV_SHEET_URL" style="margin-top:8px"></div>
+  
+</div>
+    <div class="field">
+  <label class="label no-caps" for="STAGE_LOG_URL">Stage-change log — caller comments <code class="muted">STAGE_LOG_URL</code></label>
+  <div class="row" style="flex-wrap:nowrap">
+    <input class="input mono" id="STAGE_LOG_URL" autocomplete="off" style="flex:1" />
+    <button class="btn btn-sm" type="button" onclick="saveSheet('STAGE_LOG_URL')">Save &amp; test</button>
+  </div>
+  <div class="status hidden" id="status-STAGE_LOG_URL" style="margin-top:8px"></div>
+  <div class="hint">Supplies Comment LSQ and fills in missing emails.</div>
+</div>
+  </div>
+</div>
+
+<!-- =============================================== 6. REPORT SHEETS -->
+<div class="card">
+  <div class="card-head">
+    <div><h2 class="card-title"><span class="step-badge">6</span>Report sheets</h2>
+      <p class="card-sub">Where each report reads its leads from.</p></div>
+  </div>
+  <div class="card-body">
+    <h3 style="font-size:13px;margin:0 0 10px">Chat / Email / Referral</h3>
+    <div class="field">
+  <label class="label no-caps" for="CER_COMBINED_URL">Enquiry sheet <code class="muted">CER_COMBINED_URL</code></label>
+  <div class="row" style="flex-wrap:nowrap">
+    <input class="input mono" id="CER_COMBINED_URL" autocomplete="off" style="flex:1" />
+    <button class="btn btn-sm" type="button" onclick="saveSheet('CER_COMBINED_URL')">Save &amp; test</button>
+  </div>
+  <div class="status hidden" id="status-CER_COMBINED_URL" style="margin-top:8px"></div>
+  <div class="hint">Needs <code>Lead_Phone_Number</code>; Date, Course_Enquired, Name, Owner, Contact_Stage and Type are used when present.</div>
+</div>
+
+    <h3 style="font-size:13px;margin:18px 0 10px">Incoming</h3>
+    <div class="field">
+  <label class="label no-caps" for="INCOMING_MASTER_URL">Master call history <code class="muted">INCOMING_MASTER_URL</code></label>
+  <div class="row" style="flex-wrap:nowrap">
+    <input class="input mono" id="INCOMING_MASTER_URL" autocomplete="off" style="flex:1" />
+    <button class="btn btn-sm" type="button" onclick="saveSheet('INCOMING_MASTER_URL')">Save &amp; test</button>
+  </div>
+  <div class="status hidden" id="status-INCOMING_MASTER_URL" style="margin-top:8px"></div>
+  <div class="hint">Its newest Call Date is the day the report was last prepared — Ozonetel is fetched from that day to today.</div>
+</div>
+
+    <h3 style="font-size:13px;margin:18px 0 10px">High Priority</h3>
+    <div class="banner" style="margin-bottom:14px">
+      <div><strong>At the start of each month, roll these over.</strong>
+        Move what is in <em>Current month</em> into <em>Previous month</em>, then paste the new month's link into
+        <em>Current month</em>. Both are merged and de-duplicated on Prospect ID, so an overlap costs nothing.</div>
+    </div>
+    <div class="field">
+  <label class="label no-caps" for="HP_CURRENT_MONTH_URL">Current month — lead sheet <code class="muted">HP_CURRENT_MONTH_URL</code></label>
+  <div class="row" style="flex-wrap:nowrap">
+    <input class="input mono" id="HP_CURRENT_MONTH_URL" autocomplete="off" style="flex:1" />
+    <button class="btn btn-sm" type="button" onclick="saveSheet('HP_CURRENT_MONTH_URL')">Save &amp; test</button>
+  </div>
+  <div class="status hidden" id="status-HP_CURRENT_MONTH_URL" style="margin-top:8px"></div>
+  
+</div>
+    <div class="field">
+  <label class="label no-caps" for="HP_PREVIOUS_MONTH_URL">Previous month — lead sheet <code class="muted">HP_PREVIOUS_MONTH_URL</code></label>
+  <div class="row" style="flex-wrap:nowrap">
+    <input class="input mono" id="HP_PREVIOUS_MONTH_URL" autocomplete="off" style="flex:1" />
+    <button class="btn btn-sm" type="button" onclick="saveSheet('HP_PREVIOUS_MONTH_URL')">Save &amp; test</button>
+  </div>
+  <div class="status hidden" id="status-HP_PREVIOUS_MONTH_URL" style="margin-top:8px"></div>
+  <div class="hint">Leave blank to build from the current month alone.</div>
+</div>
+    <div class="field">
+  <label class="label no-caps" for="HP_REV_URL_1">Enrollment tracker — tab 1 <code class="muted">HP_REV_URL_1</code></label>
+  <div class="row" style="flex-wrap:nowrap">
+    <input class="input mono" id="HP_REV_URL_1" autocomplete="off" style="flex:1" />
+    <button class="btn btn-sm" type="button" onclick="saveSheet('HP_REV_URL_1')">Save &amp; test</button>
+  </div>
+  <div class="status hidden" id="status-HP_REV_URL_1" style="margin-top:8px"></div>
+  
+</div>
+    <div class="field">
+  <label class="label no-caps" for="HP_REV_URL_2">Enrollment tracker — tab 2 <code class="muted">HP_REV_URL_2</code></label>
+  <div class="row" style="flex-wrap:nowrap">
+    <input class="input mono" id="HP_REV_URL_2" autocomplete="off" style="flex:1" />
+    <button class="btn btn-sm" type="button" onclick="saveSheet('HP_REV_URL_2')">Save &amp; test</button>
+  </div>
+  <div class="status hidden" id="status-HP_REV_URL_2" style="margin-top:8px"></div>
+  <div class="hint">Both tabs are read; only rows marked <code>new enrollment</code> count.</div>
+</div>
+  </div>
+</div>
+
+<!-- =============================================== 7. PUSH LINKS -->
+<div class="card">
+  <div class="card-head">
+    <div><h2 class="card-title"><span class="step-badge">7</span>Push to Google Sheets</h2>
+      <p class="card-sub">Each report's Apps Script web app. Saved only — testing a push would overwrite the sheet.</p></div>
+  </div>
+  <div class="card-body">
+    <div class="field">
+  <label class="label no-caps" for="CER_PUSH_URL">Chat / Email / Referral <code class="muted">CER_PUSH_URL</code></label>
+  
+  <input class="input mono" id="CER_PUSH_URL" autocomplete=off placeholder="" />
+  
+  
+</div>
+    <div class="field">
+  <label class="label no-caps" for="INCOMING_PUSH_URL">Incoming <code class="muted">INCOMING_PUSH_URL</code></label>
+  
+  <input class="input mono" id="INCOMING_PUSH_URL" autocomplete=off placeholder="" />
+  
+  
+</div>
+    <div class="field">
+  <label class="label no-caps" for="HP_PUSH_URL">High Priority <code class="muted">HP_PUSH_URL</code></label>
+  
+  <input class="input mono" id="HP_PUSH_URL" autocomplete=off placeholder="" />
+  
+  
+</div>
+    <div class="row">
+      <button class="btn btn-primary" onclick="saveCard(null, ['CER_PUSH_URL','INCOMING_PUSH_URL','HP_PUSH_URL'], null, 'status-push')">Save</button>
+      <div class="status hidden" id="status-push" style="flex:1"></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="row">
+      <a class="btn btn-primary" href="/">Done — go to Reports</a>
+      <span class="spacer"></span>
+      <a class="btn" href="/settings">Settings — rules and behaviour</a>
+    </div>
+  </div>
+</div>
+
+
+      </div>
+    </main>
+  </div>
+
+  <div class="toasts"></div>
+
+  <script src="/static/js/common.js"></script>
+  <script>
+    /* Hold a connection open for as long as this tab is, so a console running
+       with no window knows somebody is still there. */
+    (function holdKeepalive() {
+      let source = null;
+      function connect() {
+        try {
+          source = new EventSource("/keepalive");
+          source.onerror = function () {
+            if (source) { source.close(); source = null; }
+            setTimeout(connect, 4000);
+          };
+        } catch (err) { /* SSE unavailable — the console simply stays running */ }
+      }
+      connect();
+      window.addEventListener("pagehide", function () {
+        if (source) { source.close(); source = null; }
+      });
+    })();
+
+    /* Readiness chips in the sidebar — a fast way to see that a link or a key
+       is missing before a build fails halfway through. */
+    (async function showCredentials() {
+      const labels = {
+        lsq: "LeadSquared", roster: "Roster", cer: "Chat/Email/Ref",
+        incoming: "Incoming", ozonetel: "Ozonetel", high: "High Priority",
+        mcube: "MCube", acefone: "Acefone",
+      };
+      try {
+        const res = await apiGet("/api/health");
+        const host = document.getElementById("credBadges");
+        host.innerHTML = Object.entries(labels).map(([key, label]) => {
+          const set = res.credentials[key];
+          return `<span class="chip ${set ? "" : "bad"}" title="${set ? "Configured" : "Not configured — open Settings"}">${esc(label)}</span>`;
+        }).join("");
+      } catch (err) { /* the page still works without the badges */ }
+    })();
+  </script>
+  
+<script>
+const ALL_KEYS = [...document.querySelectorAll("input[id], textarea[id]")]
+  .map((el) => el.id).filter((id) => id === id.toUpperCase());
+
+async function loadCurrent() {
+  try {
+    const res = await apiGet("/api/settings");
+    ALL_KEYS.forEach((key) => {
+      const el = document.getElementById(key);
+      if (el && res.settings[key] !== undefined) el.value = res.settings[key];
+    });
+  } catch (err) { toast(err.message, "error"); }
+  badges();
+}
+
+async function badges() {
+  try {
+    const res = await apiGet("/api/health");
+    const c = res.credentials;
+    const map = {
+      lsq: c.lsq, ozonetel: c.ozonetel, roster: c.roster,
+      mcube: c.mcube && c.mcube_agents, acefone: c.acefone,
+    };
+    Object.entries(map).forEach(([id, set]) => {
+      const el = document.getElementById(`badge-${id}`);
+      if (!el) return;
+      el.textContent = set ? "Saved" : "Not set";
+      el.className = `badge ${set ? "good" : "warn"}`;
+    });
+  } catch (err) { /* cosmetic */ }
+}
+
+function payloadFor(keys) {
+  const payload = {};
+  keys.forEach((key) => {
+    const el = document.getElementById(key);
+    const value = el.value.trim();
+    // A masked secret coming back untouched means "keep what is saved".
+    if (el.dataset.secret && value && /^\*+$/.test(value)) return;
+    payload[key] = value;
+  });
+  return payload;
+}
+
+async function saveCard(card, keys, test, statusId) {
+  const status = statusId || `status-${card}`;
+  setStatus(status, test ? "Saving and testing against the live API…" : "Saving…", "busy");
+  try {
+    const res = await apiJson("/api/settings", payloadFor(keys));
+    ALL_KEYS.forEach((key) => {
+      if (keys.includes(key) && res.settings[key] !== undefined) {
+        document.getElementById(key).value = res.settings[key];
+      }
+    });
+    if (!test) { setStatus(status, "Saved.", "good"); badges(); return; }
+    const out = await apiGet(`/api/test/${test}`);
+    setStatus(status, `Working. ${out.message}`, "good");
+  } catch (err) {
+    setStatus(status, err.message, "bad");
+  }
+  badges();
+}
+
+async function saveSheet(key) {
+  const status = `status-${key}`;
+  setStatus(status, "Saving and reading the sheet…", "busy");
+  try {
+    await apiJson("/api/settings", payloadFor([key]));
+    if (!document.getElementById(key).value.trim()) {
+      setStatus(status, "Cleared.", "good"); badges(); return;
+    }
+    const out = await apiGet(`/api/test/sheet?key=${encodeURIComponent(key)}`);
+    setStatus(status, out.message, "good");
+  } catch (err) {
+    setStatus(status, err.message, "bad");
+  }
+  badges();
+}
+
+loadCurrent();
+</script>
+
+</body>
+</html>

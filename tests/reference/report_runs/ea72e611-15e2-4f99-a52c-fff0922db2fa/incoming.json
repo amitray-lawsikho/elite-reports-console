@@ -1,0 +1,66 @@
+{
+  "total": 20,
+  "enrolled": 8,
+  "conversion": 40.0,
+  "breached": 3,
+  "fresh": 2,
+  "dnp": 1,
+  "owners": 6,
+  "zip_intent": 14,
+  "unavailable": 2,
+  "ozonetel": {
+    "from": "2026-11-05",
+    "to": "2026-11-20",
+    "calls": 128,
+    "numbers": 20,
+    "note": "The master sheet's newest call is 11 Oct 2026, but Ozonetel only keeps 15 days \u2014 calls from 11 Oct to 04 Nov cannot be fetched. Upload them into the master sheet by hand if they matter."
+  },
+  "key": "incoming",
+  "title": "Incoming Leads",
+  "report_type": "Incoming",
+  "rows": 20,
+  "columns": [
+    "Campaign",
+    "Phone Number",
+    "Call Date",
+    "Call Flow",
+    "Status",
+    "Contact_Stage",
+    "Owner",
+    "Last Called Date",
+    "Next Follow Up Date",
+    "Follow Up Status",
+    "Phone call counter",
+    "Phone call counter formula",
+    "Enrollment Tracker",
+    "Owner According to Rev Sheet",
+    "Verticals",
+    "Team",
+    "Comment LSQ",
+    "Comment Analysis",
+    "Assigned On Call Counter",
+    "Assigned On Call Counter Formula",
+    "Zip Intent",
+    "Zip Intent Justification"
+  ],
+  "pending": 2,
+  "built_at": "2026-11-20T11:58:20.322960",
+  "seconds": 0.2,
+  "token": "ea72e611-15e2-4f99-a52c-fff0922db2fa",
+  "fetch_days": 30,
+  "fetch_basis": "Modified On",
+  "zip_fields_missing": [],
+  "rules": {
+    "breach_days": {
+      "Follow Up For Closure": 2,
+      "Counselled lead": 2,
+      "Call Back Later": 2
+    },
+    "dnp": {
+      "counter": "phone",
+      "op": "lt",
+      "value": "4"
+    },
+    "dnp_caption": "Phone Call Counter less than 4"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "total": 30,
+  "enrolled": 8,
+  "conversion": 26.7,
+  "breached": 8,
+  "fresh": 3,
+  "dnp": 5,
+  "owners": 5,
+  "zip_intent": 15,
+  "unavailable": 10,
+  "key": "chat_email_referral",
+  "title": "Chat, Email & Referral",
+  "report_type": "Chat/Email/Referral",
+  "rows": 30,
+  "columns": [
+    "Date",
+    "Course_Enquired",
+    "Name",
+    "Email",
+    "Lead_Phone_Number",
+    "Owner",
+    "Contact_Stage",
+    "Type",
+    "Last Called date",
+    "Next Follow Up Date",
+    "Follow Up status",
+    "Phone Call Counter",
+    "Phone Call Counter Formula",
+    "Enrollment Tracker",
+    "Manage Contact Tracker",
+    "Assigned On Call Counter",
+    "Assigned On Call Counter Formula",
+    "Zip Intent",
+    "Zip Intent Justification"
+  ],
+  "pending": 10,
+  "built_at": "2026-11-20T11:57:13.370316",
+  "seconds": 0.1,
+  "token": "d7de85d3-d845-45a1-94c0-eee03055a3ef",
+  "fetch_days": 30,
+  "fetch_basis": "Modified On",
+  "zip_fields_missing": [],
+  "rules": {
+    "breach_days": {
+      "Follow Up For Closure": 2,
+      "Counselled lead": 2,
+      "Call Back Later": 2
+    },
+    "dnp": {
+      "counter": "phone",
+      "op": "lt",
+      "value": "4"
+    },
+    "dnp_caption": "Phone Call Counter less than 4"
+  }
+}

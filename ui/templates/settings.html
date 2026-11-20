@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% block title %}Settings — Elite Reports Console{% endblock %}
+{% block heading %}Settings{% endblock %}
+{% block subheading %}How the console behaves — fetch defaults, breach rules, dialer priorities. Keys and links are on Setup and links.{% endblock %}
+
+{% block content %}
+
+<!-- ============================================ LEADSQUARED -->
+<div class="card">
+  <div class="card-head">
+    <div><h2 class="card-title">LeadSquared fetch</h2>
+      <p class="card-sub">The defaults the Reports page opens on. The keys are on <a href="/setup">Setup and links</a>.</p></div>
+    <span class="badge" id="saveBadge">Loaded</span>
+  </div>
+  <div class="card-body">
+    <div class="grid grid-3">
+      <div class="field">
+        <label class="label" for="DEFAULT_FETCH_DAYS">Days to fetch by default</label>
+        <input class="input" id="DEFAULT_FETCH_DAYS" type="number" min="1" max="365" />
+        <div class="hint">30 unless you change it. Editable per run on the Reports page.</div>
+      </div>
+      <div class="field">
+        <label class="label" for="DEFAULT_FETCH_BASIS">Fetch on the basis of</label>
+        <select class="input" id="DEFAULT_FETCH_BASIS">
+          {% for basis in fetch_bases %}<option value="{{ basis.key }}">{{ basis.label }}</option>{% endfor %}
+        </select>
+        <div class="hint">Modified On sees every lead; the others skip leads with no date in that field.</div>
+      </div>
+      <div class="field">
+        <label class="label" for="LSQ_PAGE_SIZE">Leads per page</label>
+        <input class="input" id="LSQ_PAGE_SIZE" type="number" min="1" max="1000" />
+        <div class="hint">LeadSquared's maximum is 1000.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ OZONETEL -->
+<div class="card">
+  <div class="card-head">
+    <div><h2 class="card-title">Ozonetel</h2>
+      <p class="card-sub">Pacing. The key, username, endpoint and skills are on <a href="/setup">Setup and links</a>.</p></div>
+  </div>
+  <div class="card-body">
+    <div class="grid grid-2">
+      <div class="field">
+        <label class="label" for="OZONETEL_SLEEP_SECONDS">Seconds between requests</label>
+        <input class="input" id="OZONETEL_SLEEP_SECONDS" type="number" min="0" max="120" />
+        <div class="hint">Ozonetel allows 2 a minute — 32 keeps clear of it.</div>
+      </div>
+      <div class="field">
+        <label class="label" for="OZONETEL_TODAY_REFRESH_MINUTES">Re-fetch today after (minutes)</label>
+        <input class="input" id="OZONETEL_TODAY_REFRESH_MINUTES" type="number" min="0" max="1440" />
+        <div class="hint">Finished days are never fetched twice; today is fetched again once its copy is this old.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ DIALERS -->
+<div class="card">
+  <div class="card-head">
+    <div><h2 class="card-title">MCube and Acefone</h2>
+      <p class="card-sub">Priorities and retries for the dialer files and pushes. The keys are on <a href="/setup">Setup and links</a>.</p></div>
+  </div>
+  <div class="card-body">
+    <h3 style="font-size:13px;margin:0 0 12px">MCube</h3>
+    <div class="grid grid-4">
+      <div class="field">
+        <label class="label" for="MCUBE_PRIORITY">Priority</label>
+        <input class="input" id="MCUBE_PRIORITY" type="number" min="1" max="999" />
+      </div>
+      <div class="field">
+        <label class="label" for="MCUBE_RETRY_ATTEMPTS">Retry attempts</label>
+        <input class="input" id="MCUBE_RETRY_ATTEMPTS" type="number" min="1" max="20" />
+      </div>
+      <div class="field">
+        <label class="label" for="MCUBE_RETRY_TIME">Minutes between retries</label>
+        <input class="input" id="MCUBE_RETRY_TIME" type="number" min="1" max="1440" />
+      </div>
+      <div class="field">
+        <label class="label" for="MCUBE_AGENT_SOURCE">Agent directory</label>
+        <select class="input" id="MCUBE_AGENT_SOURCE">
+          <option value="both">getagents + get-employees</option>
+          <option value="getagents">getagents only</option>
+          <option value="employees">get-employees only</option>
+        </select>
+      </div>
+    </div>
+
+    <h3 style="font-size:13px;margin:18px 0 12px">Acefone</h3>
+    <div class="grid grid-3">
+      <div class="field">
+        <label class="label" for="ACEFONE_PRIORITY">Priority (1–30)</label>
+        <input class="input" id="ACEFONE_PRIORITY" type="number" min="1" max="30" />
+        <div class="hint">30 dials first on Acefone.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ RULES -->
+<div class="card">
+  <div class="card-head">
+    <div><h2 class="card-title">Breach rules and wording</h2>
+      <p class="card-sub">The build dialog opens on these and saves back here — the same rule as Leads Console, for all three reports.</p></div>
+  </div>
+  <div class="card-body">
+    <div class="hint" style="margin-top:0">
+      A lead is <strong>breached</strong> when its follow-up is this many days old or more and it has not
+      been called since — or, with no follow-up, when its last call is older than this. Never called with no
+      follow-up is breached.
+    </div>
+    <div class="grid grid-3" style="margin-top:14px">
+      <div class="field">
+        <label class="label" for="RULE_DAYS_FOLLOW_UP">Follow Up For Closure</label>
+        <input class="input" id="RULE_DAYS_FOLLOW_UP" type="number" min="0" max="365" />
+      </div>
+      <div class="field">
+        <label class="label" for="RULE_DAYS_COUNSELLED">Counselled lead</label>
+        <input class="input" id="RULE_DAYS_COUNSELLED" type="number" min="0" max="365" />
+      </div>
+      <div class="field">
+        <label class="label" for="RULE_DAYS_CALL_BACK">Call Back Later</label>
+        <input class="input" id="RULE_DAYS_CALL_BACK" type="number" min="0" max="365" />
+      </div>
+    </div>
+    <div class="label" style="margin-top:8px">Less-dialled DNP — Call Not Connected / Call Not Picking Up where</div>
+    <div class="grid grid-3">
+      <div class="field">
+        <select class="input" id="DNP_COUNTER">
+          <option value="phone">Phone Call Counter</option>
+          <option value="assigned">Assigned On Call Counter</option>
+        </select>
+      </div>
+      <div class="field">
+        <select class="input" id="DNP_OPERATOR">
+          <option value="lt">is less than</option>
+          <option value="gt">is more than</option>
+          <option value="eq">equals</option>
+        </select>
+      </div>
+      <div class="field">
+        <input class="input" id="DNP_VALUE" />
+        <div class="hint">4 by default. "Equals" takes 3, 2-5 or 2,5,7.</div>
+      </div>
+    </div>
+    <div class="grid grid-2" style="margin-top:8px">
+      <div class="field">
+        <label class="label" for="DEFAULT_TEAM">Analysis opens on team</label>
+        <input class="input" id="DEFAULT_TEAM" autocomplete="off" />
+        <div class="hint">Elite by default. Leave blank to open on every team.</div>
+      </div>
+      <div class="field">
+        <label class="label" for="DIAL_LABEL_MAX">Call counter wording — spell out up to</label>
+        <input class="input" id="DIAL_LABEL_MAX" type="number" min="1" max="50" />
+        <div class="hint">Above this it reads "Dialled more than N times". A hand-set label such as "Dialled From Personal" is left alone.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ APP -->
+<div class="card">
+  <div class="card-head">
+    <div><h2 class="card-title">Behaviour</h2>
+      <p class="card-sub">Housekeeping. The defaults are fine for most runs.</p></div>
+  </div>
+  <div class="card-body">
+    <div class="grid grid-3">
+      <div class="field">
+        <label class="label" for="DOWNLOAD_DATE_FORMAT">Date format in downloads</label>
+        <input class="input mono" id="DOWNLOAD_DATE_FORMAT" autocomplete="off" />
+        <div class="hint">Python strftime. <code>%d/%m/%Y %H:%M:%S</code> matches the sheets today.</div>
+      </div>
+      <div class="field">
+        <label class="label" for="KEEP_HOURS">Keep a fetch for (hours)</label>
+        <input class="input" id="KEEP_HOURS" type="number" min="1" max="168" />
+      </div>
+      <div class="field">
+        <label class="label" for="LSQ_DATES_ARE_UTC">LeadSquared dates are UTC</label>
+        <select class="input" id="LSQ_DATES_ARE_UTC">
+          <option value="true">Yes — shift them to IST</option>
+          <option value="false">No — use them as they are</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="label" for="PUSH_CHUNK_ROWS">Rows per push request</label>
+        <input class="input" id="PUSH_CHUNK_ROWS" type="number" min="0" max="50000" />
+        <div class="hint">0 sends the whole report in one request. Raise it only if a push times out.</div>
+      </div>
+      <div class="field">
+        <label class="label" for="PUSH_TIMEOUT_SECONDS">Push timeout (seconds)</label>
+        <input class="input" id="PUSH_TIMEOUT_SECONDS" type="number" min="30" max="1800" />
+      </div>
+      <div class="field">
+        <label class="label" for="PORT">Port</label>
+        <input class="input" id="PORT" type="number" min="1024" max="65535" />
+        <div class="hint">Takes effect next start. 5200 keeps clear of Leads Console on 5100.</div>
+      </div>
+    </div>
+
+    <h3 style="font-size:13px;margin:18px 0 12px">Optional password</h3>
+    <div class="grid grid-2">
+      <div class="field">
+        <label class="label" for="APP_USER">Username</label>
+        <input class="input" id="APP_USER" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label class="label" for="APP_PASS">Password</label>
+        <input class="input" id="APP_PASS" data-secret="1" type="password" autocomplete="new-password" />
+        <div class="hint">Set both to lock the console; leave either blank to keep it open.</div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:14px">
+      <button class="btn btn-primary" id="saveBtn" onclick="saveSettings()">Save settings</button>
+      <button class="btn" onclick="loadSettings()">Discard changes</button>
+      <span class="hint" id="saveHint" style="margin:0"></span>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let SECRETS = [];
+
+function fields() {
+  return [...document.querySelectorAll("input[id], select[id]")].filter((el) => el.id === el.id.toUpperCase());
+}
+
+async function loadSettings() {
+  try {
+    const res = await apiGet("/api/settings");
+    SECRETS = res.secrets || [];
+    fields().forEach((el) => {
+      if (res.settings[el.id] !== undefined) el.value = res.settings[el.id];
+    });
+    document.getElementById("saveBadge").textContent = "Loaded";
+    document.getElementById("saveBadge").className = "badge";
+    document.getElementById("saveHint").textContent = "";
+  } catch (err) { toast(err.message, "error"); }
+}
+
+async function saveSettings() {
+  const payload = {};
+  fields().forEach((el) => {
+    const value = el.value.trim();
+    // A masked secret coming back untouched means "keep what you have".
+    if (el.dataset.secret && value && /^\*+$/.test(value)) return;
+    payload[el.id] = value;
+  });
+  const btn = document.getElementById("saveBtn");
+  btn.disabled = true;
+  try {
+    const res = await apiJson("/api/settings", payload);
+    fields().forEach((el) => {
+      if (res.settings[el.id] !== undefined) el.value = res.settings[el.id];
+    });
+    document.getElementById("saveBadge").textContent = `Saved ${res.written.length} setting(s)`;
+    document.getElementById("saveBadge").className = "badge good";
+    document.getElementById("saveHint").textContent =
+      "Linked sheets will be re-read on the next build.";
+    toast("Settings saved.", "success");
+  } catch (err) {
+    document.getElementById("saveBadge").textContent = "Not saved";
+    document.getElementById("saveBadge").className = "badge bad";
+    toast(err.message, "error");
+  } finally { btn.disabled = false; }
+}
+
+loadSettings();
+</script>
+{% endblock %}

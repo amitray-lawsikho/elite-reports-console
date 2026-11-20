@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Elite Reports Console{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/erc.css') }}" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="{{ url_for('static', filename='js/erc.js') }}"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#9636;</text></svg>" />
+</head>
+<body data-page="{{ active }}">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-name">Elite Reports Console</div>
+        <div class="brand-sub">Fetch &middot; Build &middot; Push &middot; Analyse</div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-label">Reports</div>
+        <a class="nav-item {{ 'active' if active == 'reports' }}" href="/">
+          <span class="nav-icon">&#9783;</span> Reports
+        </a>
+
+        <div class="nav-label">Analysis</div>
+        {% for r in reports %}
+        <a class="nav-item {{ 'active' if active == 'analysis' and report and report.key == r.key }}"
+           href="/analysis/{{ r.key }}">
+          <span class="nav-icon">&#9636;</span> {{ r.title }}
+        </a>
+        {% endfor %}
+
+        <div class="nav-label">Configuration</div>
+        <a class="nav-item {{ 'active' if active == 'setup' }}" href="/setup">
+          <span class="nav-icon">&#9873;</span> Setup and links
+        </a>
+        <a class="nav-item {{ 'active' if active == 'settings' }}" href="/settings">
+          <span class="nav-icon">&#9881;</span> Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="signature">
+          Developed and Designed by Amit Ray<br />
+          <a href="mailto:amitray@lawsikho.in">amitray@lawsikho.in</a>
+        </div>
+        <div id="credBadges" class="chip-list"></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 class="page-title">{% block heading %}{% endblock %}</h1>
+          <p class="page-sub">{% block subheading %}{% endblock %}</p>
+        </div>
+        <div class="topbar-actions">
+          {% block topbar %}{% endblock %}
+          <button class="btn btn-sm" type="button" id="themeToggle" onclick="toggleTheme()">Light</button>
+        </div>
+      </header>
+
+      <div class="content">
+        {% if active != 'setup' and not lsq_ready %}
+        <div class="banner">
+          <div>
+            <strong>LeadSquared keys not set yet.</strong>
+            Every report is built from a live LeadSquared fetch, so nothing can be
+            built until the access key and secret key are saved.
+          </div>
+          <a class="btn btn-primary btn-sm" href="/setup">Paste keys &rarr;</a>
+        </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  <div class="toasts"></div>
+
+  <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+  <script>
+    /* Hold a connection open for as long as this tab is, so a console running
+       with no window knows somebody is still there. */
+    (function holdKeepalive() {
+      let source = null;
+      function connect() {
+        try {
+          source = new EventSource("/keepalive");
+          source.onerror = function () {
+            if (source) { source.close(); source = null; }
+            setTimeout(connect, 4000);
+          };
+        } catch (err) { /* SSE unavailable — the console simply stays running */ }
+      }
+      connect();
+      window.addEventListener("pagehide", function () {
+        if (source) { source.close(); source = null; }
+      });
+    })();
+
+    /* Readiness chips in the sidebar — a fast way to see that a link or a key
+       is missing before a build fails halfway through. */
+    (async function showCredentials() {
+      const labels = {
+        lsq: "LeadSquared", roster: "Roster", cer: "Chat/Email/Ref",
+        incoming: "Incoming", ozonetel: "Ozonetel", high: "High Priority",
+        mcube: "MCube", acefone: "Acefone",
+      };
+      try {
+        const res = await apiGet("/api/health");
+        const host = document.getElementById("credBadges");
+        host.innerHTML = Object.entries(labels).map(([key, label]) => {
+          const set = res.credentials[key];
+          return `<span class="chip ${set ? "" : "bad"}" title="${set ? "Configured" : "Not configured — open Settings"}">${esc(label)}</span>`;
+        }).join("");
+      } catch (err) { /* the page still works without the badges */ }
+    })();
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

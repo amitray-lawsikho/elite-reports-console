@@ -1,0 +1,61 @@
+{
+  "total": 50,
+  "enrolled": 4,
+  "conversion": 8.0,
+  "breached": 3,
+  "fresh": 4,
+  "dnp": 2,
+  "owners": 6,
+  "zip_intent": 15,
+  "unavailable": 30,
+  "key": "high_priority",
+  "title": "High Priority Leads",
+  "report_type": "High Priority",
+  "rows": 50,
+  "columns": [
+    "Course Name",
+    "Name",
+    "Email",
+    "Country Code",
+    "Phone no",
+    "Lead Description",
+    "Lead Source",
+    "Date",
+    "Caller Name",
+    "Call_Status",
+    "Last Called Date",
+    "Next Follow Up Date",
+    "Phone Call Counter",
+    "Phone Call Counter Formula",
+    "Caller Comments",
+    "Enrolled",
+    "Follow Up Status",
+    "Verticals",
+    "Team",
+    "Assigned On Call Counter",
+    "Assigned On Call Counter Formula",
+    "Prospect ID",
+    "Zip Intent",
+    "Zip Intent Justification"
+  ],
+  "pending": 30,
+  "built_at": "2026-11-20T11:58:20.523848",
+  "seconds": 0.1,
+  "token": "ea72e611-15e2-4f99-a52c-fff0922db2fa",
+  "fetch_days": 30,
+  "fetch_basis": "Modified On",
+  "zip_fields_missing": [],
+  "rules": {
+    "breach_days": {
+      "Follow Up For Closure": 2,
+      "Counselled lead": 2,
+      "Call Back Later": 2
+    },
+    "dnp": {
+      "counter": "phone",
+      "op": "lt",
+      "value": "4"
+    },
+    "dnp_caption": "Phone Call Counter less than 4"
+  }
+}

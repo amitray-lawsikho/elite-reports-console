@@ -1,0 +1,29 @@
+/* Elite Reports Console — online additions on top of the Reports Console's style.css.
+   Fonts: Manrope headings, Inter text (the same two fonts as every dashboard; Amit, 18 Nov 2026). */
+body { font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+.brand-name, .page-title, h1, h2.card-title, .erc-auth-card h2 { font-family: Manrope, Inter, sans-serif; font-weight: 800; letter-spacing: -.015em; }
+
+/* back to the portal, and who is signed in (as on every dashboard) */
+.si-home { display: flex; align-items: center; gap: 9px; margin: 0 0 12px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-strong);
+  color: var(--text); text-decoration: none; font-size: 13px; font-weight: 600; background: var(--accent-soft); }
+.si-home svg { width: 17px; height: 17px; fill: none; stroke: var(--accent-text); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.si-home:hover { border-color: var(--accent); }
+.erc-user { display: grid; gap: 8px; margin-bottom: 10px; }
+.si-me { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-inset); min-width: 0; }
+.si-av { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #fff; font-weight: 700; font-size: 14px; }
+.si-t { display: grid; min-width: 0; line-height: 1.25; flex: 1; }
+.si-t b { font-size: 13.5px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.si-t small { font-size: 11.5px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.erc-tag { font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text); }
+
+/* shared links (admins only) and personal keys */
+.erc-note { font-size: 11.5px; color: var(--text-faint); margin-top: 5px; }
+.erc-readonly .input:disabled { opacity: .75; cursor: not-allowed; }
+
+/* "open it from the portal" card */
+.erc-auth { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: var(--bg); padding: 16px; }
+.erc-auth-card { width: min(440px, 100%); display: grid; gap: 14px; padding: 28px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg-raised); box-shadow: var(--shadow); }
+.erc-auth-card h2 { margin: 0; font-size: 26px; }
+.erc-auth-card p { margin: 0; color: var(--text-muted); }
+.erc-eyebrow { color: var(--accent-text); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.erc-credit { font-size: 12px; color: var(--text-faint); }

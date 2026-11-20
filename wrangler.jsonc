@@ -1,0 +1,17 @@
+{
+  // Elite Reports Console: static pages in ./web + the key-holding API (src/worker.js, POST /x/op).
+  // Secret (Cloudflare dashboard -> Worker -> Settings -> Variables and Secrets):
+  //   SUPABASE_SERVICE_KEY  service key of the Calling Analytics project (sign-in check, user list, settings, keys)
+  "name": "elite-reports-console",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "assets": { "directory": "./web", "binding": "ASSETS", "html_handling": "auto-trailing-slash", "not_found_handling": "404-page" },
+  "vars": {
+    "SUPABASE_URL": "https://ybkldfcilvibryoxcuvq.supabase.co",
+    "SUPABASE_ANON_KEY": "sb_publishable_Ywx9a1pcD6tbJDDtcS_wAw_PuJBtLBw"
+  },
+  // keep variables set in the Cloudflare dashboard on every deploy (Leads Console lost its keys twice without it)
+  "keep_vars": true,
+  "observability": { "enabled": true }
+}

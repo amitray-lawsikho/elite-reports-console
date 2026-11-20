@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% block title %}Setup and links — Elite Reports Console{% endblock %}
+{% block heading %}Setup and links{% endblock %}
+{% block subheading %}Every API key and every sheet link, in one place. Paste, press Save &amp; test, go green.{% endblock %}
+
+{% macro field(key, label, hint=None, secret=False, textarea=False, placeholder="") -%}
+<div class="field">
+  <label class="label no-caps" for="{{ key }}">{{ label|safe }} <code class="muted">{{ key }}</code></label>
+  {% if textarea %}
+  <textarea class="input mono" id="{{ key }}" rows="2" {{ 'data-secret=1' if secret }} placeholder="{{ placeholder }}"></textarea>
+  {% else %}
+  <input class="input mono" id="{{ key }}" {{ 'data-secret=1 type=password autocomplete=new-password' if secret else 'autocomplete=off' }} placeholder="{{ placeholder }}" />
+  {% endif %}
+  {% if hint %}<div class="hint">{{ hint|safe }}</div>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro sheet(key, label, hint=None) -%}
+<div class="field">
+  <label class="label no-caps" for="{{ key }}">{{ label|safe }} <code class="muted">{{ key }}</code></label>
+  <div class="row" style="flex-wrap:nowrap">
+    <input class="input mono" id="{{ key }}" autocomplete="off" style="flex:1" />
+    <button class="btn btn-sm" type="button" onclick="saveSheet('{{ key }}')">Save &amp; test</button>
+  </div>
+  <div class="status hidden" id="status-{{ key }}" style="margin-top:8px"></div>
+  {% if hint %}<div class="hint">{{ hint|safe }}</div>{% endif %}
+</div>
+{%- endmacro %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-body">
+    <div class="info-box">
+      <b>Keys are your own:</b> the LeadSquared, Ozonetel, MCube and Acefone keys you paste here are saved for you only —
+      nobody else, admins included, can see them, and everything you run uses them. <b>Sheet and push links are shared:</b>
+      one set for everyone, changed only by a console admin. Saved keys show as dots; leave them alone to keep them, or paste
+      over them to replace. Your own behaviour settings — fetch defaults, breach rules, priorities, retries — are on
+      <a href="/settings">Settings</a>.
+    </div>
+  </div>
+</div>
+
+<!-- =============================================== 1. LEADSQUARED -->
+<div class="card" data-card="lsq">
+  <div class="card-head">
+    <div><h2 class="card-title"><span class="step-badge">1</span>LeadSquared</h2>
+      <p class="card-sub">Settings &rarr; API and Webhooks &rarr; API Access Keys. Every report is built from this fetch.</p></div>
+    <span class="badge" id="badge-lsq">Checking…</span>
+  </div>
+  <div class="card-body">
+    <div class="grid grid-3">
+      {{ field("LSQ_HOST", "API host", "Paste it whole if you like — the scheme and <code>/v2/</code> are trimmed.", placeholder="api-in21.leadsquared.com") }}
+      {{ field("LSQ_ACCESS_KEY", "Access key", secret=True) }}
+      {{ field("LSQ_SECRET_KEY", "Secret key", secret=True) }}
+    </div>
+    <div class="row">
+      <button class="btn btn-primary" onclick="saveCard('lsq', ['LSQ_HOST','LSQ_ACCESS_KEY','LSQ_SECRET_KEY'], 'lsq')">Save &amp; test</button>
+      <div class="status hidden" id="status-lsq" style="flex:1"></div>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================== 2. OZONETEL -->
+<div class="card" data-card="ozonetel">
+  <div class="card-head">
+    <div><h2 class="card-title"><span class="step-badge">2</span>Ozonetel</h2>
+      <p class="card-sub">The Incoming report's calls — the same key and username as the other Ozonetel app.</p></div>
+    <span class="badge" id="badge-ozonetel">Checking…</span>
+  </div>
+  <div class="card-body">
+    <div class="grid grid-2">
+      {{ field("OZONETEL_API_KEY", "API key", secret=True) }}
+      {{ field("OZONETEL_USERNAME", "Username") }}
+    </div>
+    <div class="grid grid-2">
+      {{ field("OZONETEL_API_URL", "CDR endpoint", "Ozonetel's domestic fetchCDRDetails URL. Change it only if Ozonetel gives you another.") }}
+      {{ field("OZONETEL_SKILLS", "Sales incoming skills", "Comma separated. <code>sales</code> is LawSikho_Incoming, <code>Arbitrage_Sales</code> is Arbitrage_Incoming.") }}
+    </div>
+    <div class="row">
+      <button class="btn btn-primary" onclick="saveCard('ozonetel', ['OZONETEL_API_KEY','OZONETEL_USERNAME','OZONETEL_API_URL','OZONETEL_SKILLS'], 'ozonetel')">Save &amp; test</button>
+      <div class="status hidden" id="status-ozonetel" style="flex:1"></div>
+    </div>
+    <div class="hint">The test fetches today's calls — one request, so wait half a minute before testing again.</div>
+  </div>
+</div>
+
+<!-- =============================================== 3. MCUBE -->
+<div class="card" data-card="mcube">
+  <div class="card-head">
+    <div><h2 class="card-title"><span class="step-badge">3</span>MCube</h2>
+      <p class="card-sub">The same keys as Leads Console — copy them from its Setup page.</p></div>
+    <span class="badge" id="badge-mcube">Checking…</span>
+  </div>
+  <div class="card-body">
+    <h3 style="font-size:13px;margin:0 0 10px">Agent directory — each owner's Agent Number</h3>
+    {{ field("MCUBE_GETAGENTS_TOKEN", "The <code>AuthToken</code> in <code>POST config.mcube.com/whatsapp-mcube/getagents</code>", secret=True, textarea=True, placeholder="eyJ0eXAiOiJKV1Qi…") }}
+    {{ field("MCUBE_EMPLOYEES_AUTHORIZATION", "The <code>Authorization</code> in <code>POST config.mcube.com/Restmcube-api/get-employees</code> (optional)", "Fills in agents getagents misses.", secret=True, textarea=True, placeholder="eyJ0eXAiOiJKV1Qi…") }}
+    <div class="row">
+      <button class="btn" onclick="saveCard('mcube', ['MCUBE_GETAGENTS_TOKEN','MCUBE_EMPLOYEES_AUTHORIZATION'], 'mcube_agents', 'status-mcube-agents')">Save &amp; test</button>
+      <div class="status hidden" id="status-mcube-agents" style="flex:1"></div>
+    </div>
+
+    <h3 style="font-size:13px;margin:18px 0 10px">Campaigns and pushing</h3>
+    {{ field("MCUBE_AUTHORIZATION", "App token — the campaign list", secret=True, textarea=True, placeholder="eyJ0eXAiOiJKV1Qi…") }}
+    {{ field("MCUBE_API_KEY", "API key — campaign upload (push)", secret=True, textarea=True) }}
+    <div class="row">
+      <button class="btn" onclick="saveCard('mcube', ['MCUBE_AUTHORIZATION','MCUBE_API_KEY'], 'mcube', 'status-mcube')">Save &amp; test</button>
+      <div class="status hidden" id="status-mcube" style="flex:1"></div>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================== 4. ACEFONE -->
+<div class="card" data-card="acefone">
+  <div class="card-head">
+    <div><h2 class="card-title"><span class="step-badge">4</span>Acefone</h2>
+      <p class="card-sub">Token and the skill list owners are matched against — the same as Leads Console.</p></div>
+    <span class="badge" id="badge-acefone">Checking…</span>
+  </div>
+  <div class="card-body">
+    <div class="grid grid-2">
+      {{ field("ACEFONE_TOKEN", "API token", secret=True, textarea=True) }}
+      {{ field("ACEFONE_SKILL_LIST_ID", "Skill list id", "Owners are matched to skills in this list by name; unmatched leads arrive unrouted.") }}
+    </div>
+    <div class="row">
+      <button class="btn btn-primary" onclick="saveCard('acefone', ['ACEFONE_TOKEN','ACEFONE_SKILL_LIST_ID'], 'acefone')">Save &amp; test</button>
+      <div class="status hidden" id="status-acefone" style="flex:1"></div>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================== 5. ROSTER + SHARED SHEETS -->
+<div class="card">
+  <div class="card-head">
+    <div><h2 class="card-title"><span class="step-badge">5</span>Roster and shared sheets</h2>
+      <p class="card-sub">Published Google Sheets (CSV). Each Test reads the sheet and shows its columns.</p></div>
+    <span class="badge" id="badge-roster">Checking…</span>
+  </div>
+  <div class="card-body">
+    {{ sheet("ROSTER_URL", "Roster — Caller Name, Team Name, Vertical, Email id", "Team and Verticals columns, the dashboard slicers, and matching owners to MCube agents and Acefone skills.") }}
+    {{ sheet("REV_SHEET_URL", "Enrollment tracker — Chat/Email/Referral and Incoming") }}
+    {{ sheet("STAGE_LOG_URL", "Stage-change log — caller comments", "Supplies Comment LSQ and fills in missing emails.") }}
+  </div>
+</div>
+
+<!-- =============================================== 6. REPORT SHEETS -->
+<div class="card">
+  <div class="card-head">
+    <div><h2 class="card-title"><span class="step-badge">6</span>Report sheets</h2>
+      <p class="card-sub">Where each report reads its leads from.</p></div>
+  </div>
+  <div class="card-body">
+    <h3 style="font-size:13px;margin:0 0 10px">Chat / Email / Referral</h3>
+    {{ sheet("CER_COMBINED_URL", "Enquiry sheet", "Needs <code>Lead_Phone_Number</code>; Date, Course_Enquired, Name, Owner, Contact_Stage and Type are used when present.") }}
+
+    <h3 style="font-size:13px;margin:18px 0 10px">Incoming</h3>
+    {{ sheet("INCOMING_MASTER_URL", "Master call history", "Its newest Call Date is the day the report was last prepared — Ozonetel is fetched from that day to today.") }}
+
+    <h3 style="font-size:13px;margin:18px 0 10px">High Priority</h3>
+    <div class="banner" style="margin-bottom:14px">
+      <div><strong>At the start of each month, roll these over.</strong>
+        Move what is in <em>Current month</em> into <em>Previous month</em>, then paste the new month's link into
+        <em>Current month</em>. Both are merged and de-duplicated on Prospect ID, so an overlap costs nothing.</div>
+    </div>
+    {{ sheet("HP_CURRENT_MONTH_URL", "Current month — lead sheet") }}
+    {{ sheet("HP_PREVIOUS_MONTH_URL", "Previous month — lead sheet", "Leave blank to build from the current month alone.") }}
+    {{ sheet("HP_REV_URL_1", "Enrollment tracker — tab 1") }}
+    {{ sheet("HP_REV_URL_2", "Enrollment tracker — tab 2", "Both tabs are read; only rows marked <code>new enrollment</code> count.") }}
+  </div>
+</div>
+
+<!-- =============================================== 7. PUSH LINKS -->
+<div class="card">
+  <div class="card-head">
+    <div><h2 class="card-title"><span class="step-badge">7</span>Push to Google Sheets</h2>
+      <p class="card-sub">Each report's Apps Script web app. Saved only — testing a push would overwrite the sheet.</p></div>
+  </div>
+  <div class="card-body">
+    {{ field("CER_PUSH_URL", "Chat / Email / Referral") }}
+    {{ field("INCOMING_PUSH_URL", "Incoming") }}
+    {{ field("HP_PUSH_URL", "High Priority") }}
+    <div class="row">
+      <button class="btn btn-primary" onclick="saveCard(null, ['CER_PUSH_URL','INCOMING_PUSH_URL','HP_PUSH_URL'], null, 'status-push')">Save</button>
+      <div class="status hidden" id="status-push" style="flex:1"></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="row">
+      <a class="btn btn-primary" href="/">Done — go to Reports</a>
+      <span class="spacer"></span>
+      <a class="btn" href="/settings">Settings — rules and behaviour</a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const ALL_KEYS = [...document.querySelectorAll("input[id], textarea[id]")]
+  .map((el) => el.id).filter((id) => id === id.toUpperCase());
+
+async function loadCurrent() {
+  try {
+    const res = await apiGet("/api/settings");
+    ALL_KEYS.forEach((key) => {
+      const el = document.getElementById(key);
+      if (el && res.settings[key] !== undefined) el.value = res.settings[key];
+    });
+  } catch (err) { toast(err.message, "error"); }
+  badges();
+}
+
+async function badges() {
+  try {
+    const res = await apiGet("/api/health");
+    const c = res.credentials;
+    const map = {
+      lsq: c.lsq, ozonetel: c.ozonetel, roster: c.roster,
+      mcube: c.mcube && c.mcube_agents, acefone: c.acefone,
+    };
+    Object.entries(map).forEach(([id, set]) => {
+      const el = document.getElementById(`badge-${id}`);
+      if (!el) return;
+      el.textContent = set ? "Saved" : "Not set";
+      el.className = `badge ${set ? "good" : "warn"}`;
+    });
+  } catch (err) { /* cosmetic */ }
+}
+
+function payloadFor(keys) {
+  const payload = {};
+  keys.forEach((key) => {
+    const el = document.getElementById(key);
+    const value = el.value.trim();
+    // A masked secret coming back untouched means "keep what is saved".
+    if (el.dataset.secret && value && /^\*+$/.test(value)) return;
+    payload[key] = value;
+  });
+  return payload;
+}
+
+async function saveCard(card, keys, test, statusId) {
+  const status = statusId || `status-${card}`;
+  setStatus(status, test ? "Saving and testing against the live API…" : "Saving…", "busy");
+  try {
+    const res = await apiJson("/api/settings", payloadFor(keys));
+    ALL_KEYS.forEach((key) => {
+      if (keys.includes(key) && res.settings[key] !== undefined) {
+        document.getElementById(key).value = res.settings[key];
+      }
+    });
+    if (!test) { setStatus(status, "Saved.", "good"); badges(); return; }
+    const out = await apiGet(`/api/test/${test}`);
+    setStatus(status, `Working. ${out.message}`, "good");
+  } catch (err) {
+    setStatus(status, err.message, "bad");
+  }
+  badges();
+}
+
+async function saveSheet(key) {
+  const status = `status-${key}`;
+  setStatus(status, "Saving and reading the sheet…", "busy");
+  try {
+    await apiJson("/api/settings", payloadFor([key]));
+    if (!document.getElementById(key).value.trim()) {
+      setStatus(status, "Cleared.", "good"); badges(); return;
+    }
+    const out = await apiGet(`/api/test/sheet?key=${encodeURIComponent(key)}`);
+    setStatus(status, out.message, "good");
+  } catch (err) {
+    setStatus(status, err.message, "bad");
+  }
+  badges();
+}
+
+loadCurrent();
+</script>
+{% endblock %}
