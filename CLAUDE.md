@@ -17,6 +17,7 @@ dropped: Chat & Email Analysis covers it. The original Python app is kept in `te
   link), `erc_user_settings` (each person's own keys and preferences). RLS on, no policies: Worker only.
 - Fetches, built reports, dialer files and the Ozonetel day cache live only in the user's browser (IndexedDB, KEEP_HOURS);
   nothing with a phone number is stored online (Amit, 20 Nov 2026).
+- Look: Crimson & graphite (Amit, 20 Nov 2026), set in `ui/static/css/erc.css` over the original `style.css`; Manrope / Inter.
 - Ozonetel's CDR API wants a GET with a JSON body: the Worker writes that request by hand over a TLS socket (`getWithBody`).
 - Free plans only: no server, no scheduled jobs, no GitHub Actions minutes.
 
