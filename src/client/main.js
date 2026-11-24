@@ -108,8 +108,8 @@ const page = () => document.body.dataset.page || "";
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 function decorate() {
   const me = cfg.me();
-  const brand = document.querySelector(".sidebar .brand");
-  if (brand) brand.insertAdjacentHTML("afterend", `<a class="si-home" href="${PORTAL}" title="Back to the Sales Intelligence Portal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5M6.5 10v9h11v-9"/></svg> Portal home</a>`);
+  const bar = document.querySelector(".topbar-actions");
+  if (bar) bar.insertAdjacentHTML("beforeend", `<a class="si-home" href="${PORTAL}" aria-label="Home: back to the Sales Intelligence Portal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h4.75v-5.5h3.5V20h4.75V9.5"/></svg><span class="si-home-l">Home</span><span class="si-tip" role="tooltip"><b>Sales Intelligence Portal</b>Back to all your dashboards</span></a>`);
   const foot = document.querySelector(".sidebar-foot");
   const email = String(me.email || ""), name = email.split("@")[0].split(/[._-]+/).filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join(" ");
   if (foot) foot.insertAdjacentHTML("afterbegin", `<div class="erc-user"><div class="si-me" title="${esc(email)}"><span class="si-av">${esc((name || "?")[0])}</span>
