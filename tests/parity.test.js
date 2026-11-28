@@ -115,3 +115,14 @@ test("dialer counts and selection match Python", async () => {
   assert.equal(leads.length, REF.dialer_select.leads.length);
   leads.forEach((l, i) => { for (const [k, v] of Object.entries(REF.dialer_select.leads[i])) assert.equal(s(l[k]), v, `lead ${i} ${k}`); });
 });
+
+test("dial priorities on the new scale (Amit, 28 Nov 2026): MCube 2–40, Acefone 1–29", async () => {
+  const A = await import("../src/client/apis.js");
+  const { SPEC } = await import("../src/shared/spec.js");
+  assert.equal(SPEC.MCUBE_PRIORITY.def, "2"); assert.equal(SPEC.ACEFONE_PRIORITY.def, "29");
+  assert.equal(A.mcubeBuildLead({ number: "9876543210", priority: 1 }).priority, 2);    // never below 2
+  assert.equal(A.mcubeBuildLead({ number: "9876543210", priority: 55 }).priority, 40);  // never above 40
+  assert.equal(A.mcubeBuildLead({ number: "9876543210" }).priority, 2);
+  const src = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "src", "client", "routes.js"), "utf8");
+  assert.ok(src.includes('number("priority", 2, 40, "Priority")') && src.includes('number("priority", 1, 29, "Priority")'));
+});

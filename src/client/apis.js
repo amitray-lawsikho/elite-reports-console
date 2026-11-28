@@ -144,11 +144,13 @@ export async function mcubeUpload(campaignId, listData) {
   return mc("mcube.push", { campaign_id: String(parseInt(campaignId, 10)), listData });
 }
 const blank = (v) => v === null || v === undefined || v === "";
-export function mcubeBuildLead({ number, name = "", source = "", agent_number = "", priority = 1, retry_time = null, retry_attempt = null, ref_id = "" }) {
+export function mcubeBuildLead({ number, name = "", source = "", agent_number = "", priority = 2, retry_time = null, retry_attempt = null, ref_id = "" }) {
   const digits = String(number ?? "").replace(/\D/g, "");
   if (!digits) return null;
-  let pv = /^[+-]?\d+$/.test(str(priority)) ? parseInt(str(priority), 10) : 1;
-  if (pv < 1) pv = 1;
+  // MCube priorities run 2…40 since 28 Nov 2026 (2 dials first)
+  let pv = /^[+-]?\d+$/.test(str(priority)) ? parseInt(str(priority), 10) : 2;
+  if (pv < 2) pv = 2;
+  if (pv > 40) pv = 40;
   const [att, mins] = mcubeRetryDefaults();
   const lead = {
     number: Number(digits) <= Number.MAX_SAFE_INTEGER ? Number(digits) : digits,

@@ -27,6 +27,9 @@ dropped: Chat & Email Analysis covers it. The original Python app is kept in `te
   here — only their own. Sheet / push links are shared and only console admins change them.
 - The Worker runs named operations only; sheets are read / pushed by setting name, never a URL from the browser; Ozonetel's
   address must be an ozonetel.com one.
+- Dial priority scales (Amit, 28 Nov 2026, the diallers changed): MCube 2–40, 2 dials first (was 1–40; every value +1, 40 still
+  last); Acefone 1–29, 29 dials first (was 1–30; every value −1). Defaults MCube 2 / Acefone 29; overrides validated to those ranges.
+  The Acefone file column keeps its name "Priority(1 to 30)". Tests shift the Python reference's priorities by the same amounts.
 - Logic changes: keep parity with `tests/reference` (the original Python) unless Amit approves a change; refresh the recording
   with `python3 tests/reference_run.py` and add a test with each change.
 - Known differences from the Python, on purpose: date-only LeadSquared follow-ups are not shifted by 5:30 (the Leads Console fix);

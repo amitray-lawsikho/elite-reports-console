@@ -149,8 +149,9 @@ const fileKey = (token) => `dialer_files`;
 export async function makeFiles(token, categories, reports = null, owners = null, log = () => {}) {
   const [leads, stats] = await select(token, categories, reports, owners);
   const callers = leads.map((l) => l.caller);
-  const mcubePriority = cfg.int("MCUBE_PRIORITY", 1);
-  const acefonePriority = Math.min(30, Math.max(1, cfg.int("ACEFONE_PRIORITY", 30)));
+  // dialler scales since 28 Nov 2026 (Amit): MCube 2…40, 2 dials first; Acefone 1…29, 29 dials first
+  const mcubePriority = Math.min(40, Math.max(2, cfg.int("MCUBE_PRIORITY", 2)));
+  const acefonePriority = Math.min(29, Math.max(1, cfg.int("ACEFONE_PRIORITY", 29)));
   let agents = [], agentError = "";
   if (cfg.get("MCUBE_GETAGENTS_TOKEN") || cfg.get("MCUBE_EMPLOYEES_AUTHORIZATION")) {
     try { agents = await loadAgents(log); } catch (e) { agentError = String(e.message || e); }
@@ -211,13 +212,13 @@ export async function pushMcube(job, token, campaignId, campaignName, retryAttem
   const override = priority !== null && priority !== undefined && priority !== "";
   for (const row of frame.rows) {
     const lead = A.mcubeBuildLead({ number: row.Number, name: row.Name ?? "", source: row.Source ?? "", agent_number: row["Agent Number"] ?? "",
-      priority: override ? priority : row.Priority ?? 1, ref_id: row["Ref Id"] ?? "", retry_attempt: retryAttempts, retry_time: retryTime });
+      priority: override ? priority : row.Priority ?? 2, ref_id: row["Ref Id"] ?? "", retry_attempt: retryAttempts, retry_time: retryTime });
     if (lead && lead.eid) prepared.push(lead); else skipped++;
   }
   if (skipped) job.log(`${skipped} row(s) skipped — no phone number or no MCube agent number.`);
   if (!prepared.length) throw new Error("Nothing to push: no lead has an MCube Agent Number.");
   const pr = override ? `overridden to ${prepared[0].priority}` : `[${[...new Set(prepared.map((l) => l.priority))].sort((a, b) => a - b).join(", ")}]`;
-  job.log(`${prepared.length.toLocaleString("en-US")} lead(s), priority ${pr}, retry ${prepared[0].retry_attempt} attempt(s) ${prepared[0].retry_time} minute(s) apart.`);
+  job.log(`${prepared.length.toLocaleString("en-US")} lead(s), priority ${pr} (2 dials first on MCube), retry ${prepared[0].retry_attempt} attempt(s) ${prepared[0].retry_time} minute(s) apart.`);
   const batches = [...chunked(prepared, cfg.int("MCUBE_PUSH_BATCH_SIZE", 200))];
   job.setTotal(prepared.length);
   for (let i = 0; i < batches.length; i++) {
@@ -274,7 +275,7 @@ export async function pushAcefone(job, token, listId, listName, priority = null,
   }
   if (!prepared.length) throw new Error("Nothing to push: no lead has a phone number.");
   if (unrouted.size) job.log(`No Acefone skill for: ${[...unrouted].sort().join(", ")} — their leads arrive unrouted.`);
-  if (override) job.log(`Priority overridden to ${priority} for every lead.`);
+  if (override) job.log(`Priority overridden to ${priority} for every lead (29 dials first on Acefone).`);
   const batches = [...chunked(prepared, cfg.int("ACEFONE_PUSH_BATCH_SIZE", 500))];
   job.setTotal(prepared.length);
   for (let i = 0; i < batches.length; i++) {

@@ -48,12 +48,12 @@ export const SPEC = {
   MCUBE_RETRY_ATTEMPTS:          { def: "3", scope: "user" },
   MCUBE_RETRY_TIME:              { def: "180", scope: "user" },
   MCUBE_SEND_REFID:              { def: "false", scope: "user" },
-  MCUBE_PRIORITY:                { def: "1", scope: "user" },
+  MCUBE_PRIORITY:                { def: "2", scope: "user" },
   // Acefone
   ACEFONE_TOKEN:                 { def: "", scope: "user_token" },
   ACEFONE_SKILL_LIST_ID:         { def: "", scope: "user" },
   ACEFONE_PUSH_BATCH_SIZE:       { def: "500", scope: "user" },
-  ACEFONE_PRIORITY:              { def: "30", scope: "user" },
+  ACEFONE_PRIORITY:              { def: "29", scope: "user" },
   // Breach rules and wording
   RULE_DAYS_FOLLOW_UP:           { def: "2", scope: "user" },
   RULE_DAYS_COUNSELLED:          { def: "2", scope: "user" },

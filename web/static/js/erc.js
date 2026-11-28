@@ -49,12 +49,12 @@
     MCUBE_RETRY_ATTEMPTS: { def: "3", scope: "user" },
     MCUBE_RETRY_TIME: { def: "180", scope: "user" },
     MCUBE_SEND_REFID: { def: "false", scope: "user" },
-    MCUBE_PRIORITY: { def: "1", scope: "user" },
+    MCUBE_PRIORITY: { def: "2", scope: "user" },
     // Acefone
     ACEFONE_TOKEN: { def: "", scope: "user_token" },
     ACEFONE_SKILL_LIST_ID: { def: "", scope: "user" },
     ACEFONE_PUSH_BATCH_SIZE: { def: "500", scope: "user" },
-    ACEFONE_PRIORITY: { def: "30", scope: "user" },
+    ACEFONE_PRIORITY: { def: "29", scope: "user" },
     // Breach rules and wording
     RULE_DAYS_FOLLOW_UP: { def: "2", scope: "user" },
     RULE_DAYS_COUNSELLED: { def: "2", scope: "user" },
@@ -509,11 +509,12 @@
     return mc("mcube.push", { campaign_id: String(parseInt(campaignId, 10)), listData });
   }
   var blank = (v) => v === null || v === void 0 || v === "";
-  function mcubeBuildLead({ number, name = "", source = "", agent_number = "", priority = 1, retry_time = null, retry_attempt = null, ref_id = "" }) {
+  function mcubeBuildLead({ number, name = "", source = "", agent_number = "", priority = 2, retry_time = null, retry_attempt = null, ref_id = "" }) {
     const digits = String(number ?? "").replace(/\D/g, "");
     if (!digits) return null;
-    let pv = /^[+-]?\d+$/.test(str(priority)) ? parseInt(str(priority), 10) : 1;
-    if (pv < 1) pv = 1;
+    let pv = /^[+-]?\d+$/.test(str(priority)) ? parseInt(str(priority), 10) : 2;
+    if (pv < 2) pv = 2;
+    if (pv > 40) pv = 40;
     const [att, mins] = mcubeRetryDefaults();
     const lead = {
       number: Number(digits) <= Number.MAX_SAFE_INTEGER ? Number(digits) : digits,
@@ -2938,8 +2939,8 @@
   }) {
     const [leads2, stats] = await select(token2, categories, reports, owners);
     const callers = leads2.map((l) => l.caller);
-    const mcubePriority = cfg.int("MCUBE_PRIORITY", 1);
-    const acefonePriority = Math.min(30, Math.max(1, cfg.int("ACEFONE_PRIORITY", 30)));
+    const mcubePriority = Math.min(40, Math.max(2, cfg.int("MCUBE_PRIORITY", 2)));
+    const acefonePriority = Math.min(29, Math.max(1, cfg.int("ACEFONE_PRIORITY", 29)));
     let agents = [], agentError = "";
     if (cfg.get("MCUBE_GETAGENTS_TOKEN") || cfg.get("MCUBE_EMPLOYEES_AUTHORIZATION")) {
       try {
@@ -3053,7 +3054,7 @@
         name: row.Name ?? "",
         source: row.Source ?? "",
         agent_number: row["Agent Number"] ?? "",
-        priority: override ? priority : row.Priority ?? 1,
+        priority: override ? priority : row.Priority ?? 2,
         ref_id: row["Ref Id"] ?? "",
         retry_attempt: retryAttempts,
         retry_time: retryTime
@@ -3064,7 +3065,7 @@
     if (skipped) job.log(`${skipped} row(s) skipped \u2014 no phone number or no MCube agent number.`);
     if (!prepared.length) throw new Error("Nothing to push: no lead has an MCube Agent Number.");
     const pr = override ? `overridden to ${prepared[0].priority}` : `[${[...new Set(prepared.map((l) => l.priority))].sort((a, b) => a - b).join(", ")}]`;
-    job.log(`${prepared.length.toLocaleString("en-US")} lead(s), priority ${pr}, retry ${prepared[0].retry_attempt} attempt(s) ${prepared[0].retry_time} minute(s) apart.`);
+    job.log(`${prepared.length.toLocaleString("en-US")} lead(s), priority ${pr} (2 dials first on MCube), retry ${prepared[0].retry_attempt} attempt(s) ${prepared[0].retry_time} minute(s) apart.`);
     const batches = [...chunked(prepared, cfg.int("MCUBE_PUSH_BATCH_SIZE", 200))];
     job.setTotal(prepared.length);
     for (let i = 0; i < batches.length; i++) {
@@ -3147,7 +3148,7 @@
     }
     if (!prepared.length) throw new Error("Nothing to push: no lead has a phone number.");
     if (unrouted.size) job.log(`No Acefone skill for: ${[...unrouted].sort().join(", ")} \u2014 their leads arrive unrouted.`);
-    if (override) job.log(`Priority overridden to ${priority} for every lead.`);
+    if (override) job.log(`Priority overridden to ${priority} for every lead (29 dials first on Acefone).`);
     const batches = [...chunked(prepared, cfg.int("ACEFONE_PUSH_BATCH_SIZE", 500))];
     job.setTotal(prepared.length);
     for (let i = 0; i < batches.length; i++) {
@@ -3761,7 +3762,7 @@
     } catch {
       fail(source === "upload" ? "Upload a file first." : "Make the dialer files first.");
     }
-    const args = target === "mcube" ? [t, targetId, name, number("retry_attempts", 1, 20, "Retry attempts"), number("retry_time", 1, 1440, "Retry time"), number("priority", 1, 999, "Priority"), source] : [t, targetId, name, number("priority", 1, 30, "Priority"), d.skill_map || null, d.skill_list_id || null, source];
+    const args = target === "mcube" ? [t, targetId, name, number("retry_attempts", 1, 20, "Retry attempts"), number("retry_time", 1, 1440, "Retry time"), number("priority", 2, 40, "Priority"), source] : [t, targetId, name, number("priority", 1, 29, "Priority"), d.skill_map || null, d.skill_list_id || null, source];
     busy();
     const job = start(`dialer:${target}`, `Push to ${target === "mcube" ? "MCube" : "Acefone"} \u2014 ${name}`, target === "mcube" ? pushMcube : pushAcefone, ...args);
     return { job_id: job.id };

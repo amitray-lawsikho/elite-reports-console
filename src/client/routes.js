@@ -287,8 +287,8 @@ on("POST", "/api/dialers/push", async ({ json }) => {
   try { await dialers.loadFile(t, source === "upload" ? `${target}_upload` : target); }
   catch { fail(source === "upload" ? "Upload a file first." : "Make the dialer files first."); }
   const args = target === "mcube"
-    ? [t, targetId, name, number("retry_attempts", 1, 20, "Retry attempts"), number("retry_time", 1, 1440, "Retry time"), number("priority", 1, 999, "Priority"), source]
-    : [t, targetId, name, number("priority", 1, 30, "Priority"), d.skill_map || null, d.skill_list_id || null, source];
+    ? [t, targetId, name, number("retry_attempts", 1, 20, "Retry attempts"), number("retry_time", 1, 1440, "Retry time"), number("priority", 2, 40, "Priority"), source]
+    : [t, targetId, name, number("priority", 1, 29, "Priority"), d.skill_map || null, d.skill_list_id || null, source];
   busy();
   const job = J.start(`dialer:${target}`, `Push to ${target === "mcube" ? "MCube" : "Acefone"} — ${name}`, target === "mcube" ? dialers.pushMcube : dialers.pushAcefone, ...args);
   return { job_id: job.id };
